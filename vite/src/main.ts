@@ -1,5 +1,5 @@
 import Embree from './em/embree';
-import { mat4, vec3 } from 'gl-matrix';
+import { mat4, quat, vec3 } from 'gl-matrix';
 import { LookAt } from './look-at';
 import { loadModel } from './mesh';
 
@@ -66,7 +66,7 @@ function resetRay(ray: Embree.RTCRayHit) {
 
 function render(out: Uint8ClampedArray, width: number, height: number, buffer: Float32Array, range: { min: number, max: number}): void {
   const delta = range.max - range.min;
-  const t = (v: number) => (v-range.min)/delta;
+  const t = (v: number) => v;//v-range.min)/delta;
   for(let y=0;y<height;y++) {
     for(let x=0;x<width;x++) {
       const buff_idx = (x + y*width);
@@ -74,7 +74,7 @@ function render(out: Uint8ClampedArray, width: number, height: number, buffer: F
       if(buffer[buff_idx] >= 0) {
         const c = buffer[buff_idx];
         const v = (1.0-t(c));
-        out[idx+1] = out[idx+2] = v*255;
+        out[idx+1] = out[idx+2] = c*255;
         out[idx] = out[idx+1];
         out[idx+3] = 255;
       } else {
@@ -86,6 +86,8 @@ function render(out: Uint8ClampedArray, width: number, height: number, buffer: F
     }
   }
 }
+
+const device = RTC.newDevice('verbose=3,threads=1,tessellation_cache_size=0');
 
 function addGroundPlane(device: Embree.Device ,scene: Embree.Scene) {
 
@@ -116,7 +118,7 @@ function addGroundPlane(device: Embree.Device ,scene: Embree.Scene) {
   return geomID;
 }
 
-async function addRabbit(device: Embree.Device, scene: Embree.Scene) {
+async function addRabbit(device: Embree.Device): Promise<Embree.Scene> {
   const rabbitData = await loadModel('bunny.obj');
 
   const vertexCount = rabbitData.vertices.length/4
@@ -148,17 +150,53 @@ async function addRabbit(device: Embree.Device, scene: Embree.Scene) {
     0, 3 * 4, indexCount);
 
   RTC.commitGeometry(mesh);
-  const geomID = RTC.attachGeometry(scene, mesh);
+  const scene = RTC.newScene(device);
+  RTC.attachGeometry(scene, mesh);
   RTC.releaseGeometry(mesh);
-
-  return geomID;
+  RTC.commitScene(scene);
+  return scene;
 }
 
-const device = RTC.newDevice('verbose=3,threads=1,tessellation_cache_size=0');
+const INSTANCE_COUNT = 8;
+const transformMatrix_ptr = embree._malloc(INSTANCE_COUNT * 4 * 16);
+const transformMatrix = [];
+for(let i=0;i<INSTANCE_COUNT;i++) {
+  transformMatrix[i] = new Float32Array(embree.HEAP8.buffer, transformMatrix_ptr + i*4 * 16, 16);
+}
+
+function createRabbitInstance(scene: Embree.Scene, rabbit: Embree.Scene, instance: number): Embree.Geometry {
+  const g_instance0 = RTC.newGeometry(device, embree.RTC_GEOMETRY_TYPE_INSTANCE);
+  RTC.setGeometryInstancedScene(g_instance0,rabbitScene);
+  RTC.setGeometryTimeStepCount(g_instance0,1);
+  RTC.attachGeometry(scene, g_instance0);
+  RTC.releaseGeometry(g_instance0);
+  RTC.setGeometryTransform(g_instance0,0,embree.RTC_FORMAT_FLOAT4X4_COLUMN_MAJOR, transformMatrix_ptr + instance * 4 * 16);
+  RTC.commitGeometry(g_instance0);
+  return g_instance0;
+}
+
 const scene = RTC.newScene(device);
 
 addGroundPlane(device, scene);
-await addRabbit(device, scene);
+const rabbitScene = await addRabbit(device);
+
+const rabbits: Embree.Geometry[] = [];
+let rabbitIndex = 0;
+
+
+mat4.fromTranslation(transformMatrix[rabbitIndex], [0,.5,0])
+mat4.fromRotationTranslation(transformMatrix[1], quat.setAxisAngle(quat.create(), [0,1,0], Math.PI/3), [1,0,.5])
+mat4.fromRotationTranslation(transformMatrix[2], quat.setAxisAngle(quat.create(), [0,1,0], -Math.PI/3), [-1,0,-.5])
+mat4.fromRotationTranslation(transformMatrix[3], quat.setAxisAngle(quat.create(), [0,1,0], -Math.PI/6), [-1.5,0.5,.5])
+mat4.fromRotationTranslation(transformMatrix[4], quat.setAxisAngle(quat.create(), [0,1,0], Math.PI/6), [1.5,0.5,.5])
+mat4.fromRotationTranslation(transformMatrix[5], quat.setAxisAngle(quat.create(), [0,1,0], -Math.PI), [.25,0,1.15])
+mat4.fromRotationTranslation(transformMatrix[6], quat.setAxisAngle(quat.create(), [0,1,0], Math.PI/6), [-0.25,0.5,.5])
+mat4.fromRotationTranslation(transformMatrix[7], quat.setAxisAngle(quat.create(), [0,1,0], Math.PI), [1.5,0.5,.5])
+
+for(let i=0;i<INSTANCE_COUNT;i++) {
+  rabbits.push(createRabbitInstance(scene, rabbitScene, rabbitIndex++));
+}
+
 RTC.commitScene(scene);
 
 interface Camera {
@@ -178,7 +216,7 @@ const posXY = vec3.create();
 const posX = vec3.create()
 const posY = vec3.create()
 
-const SIZE = 1200;
+const SIZE = 1400;
 const WIDTH = SIZE;
 const HEIGHT = SIZE;
 const out_buf_size = WIDTH*HEIGHT*12;
@@ -187,8 +225,8 @@ const out_buf = new Float32Array(embree.HEAP8.buffer, out_buf_ptr, WIDTH * HEIGH
 (out_buf as any).ptr = out_buf_ptr;
 const out = new Float32Array(WIDTH * HEIGHT);
 
-const light_v3 = vec3.normalize(vec3.create(),[-1,-1,-1]);
-const diffuse_v3 = vec3.set(vec3.create(), 1,1,1);
+const light_v3 = vec3.normalize(vec3.create(),[1,-1,-1]);
+const diffuse_v3 = vec3.set(vec3.create(), 0.8,1,1);
 const ray_ng_v3 = vec3.create();
 const color_v3 = vec3.create();
 
@@ -250,7 +288,7 @@ function bvh_intersect<R extends Embree.RTCRayHit|Embree.RTCRayHit4|Embree.RTCRa
 }
 
 const camera: Camera = {
-  pos: vec3.set(vec3.create(), 1, 1.5, 3),
+  pos: vec3.set(vec3.create(), 0.5, 1.5, 3),
   lookAt: vec3.set(vec3.create(), 0, 0.5, 0),
   matrix: mat4.create()
 }
@@ -445,8 +483,8 @@ const MODE: number = 3;
 const canvas: HTMLCanvasElement = document.querySelector('#canvas')!;
 canvas.width = WIDTH;
 canvas.height = HEIGHT;
-canvas.style.width = '800px'
-canvas.style.height = '800px'
+canvas.style.width = Math.max(WIDTH*0.9,800)+'px'
+canvas.style.height = Math.max(HEIGHT*0.9,800)+'px'
 
 const context = canvas.getContext('2d')!;
 

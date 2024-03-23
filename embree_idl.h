@@ -23,5 +23,5 @@ RTC_NAMESPACE_USE
 class RTC {
   public:
     #include "_h/extra.h"
-    #include "build/gen.h"
+    #include "gen.h"
 };

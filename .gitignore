@@ -1,7 +1,3 @@
 node_modules/
-*.wasm
-*.wat
-*.map
-*.a
 build/
-lib/
+dist/
