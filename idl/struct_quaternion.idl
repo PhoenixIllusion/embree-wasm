@@ -1,0 +1,21 @@
+//rtcore_quaternion.h
+
+interface RTCQuaternionDecomposition
+{
+  attribute float scale_x;
+  attribute float scale_y;
+  attribute float scale_z;
+  attribute float skew_xy;
+  attribute float skew_xz;
+  attribute float skew_yz;
+  attribute float shift_x;
+  attribute float shift_y;
+  attribute float shift_z;
+  attribute float quaternion_r;
+  attribute float quaternion_i;
+  attribute float quaternion_j;
+  attribute float quaternion_k;
+  attribute float translation_x;
+  attribute float translation_y;
+  attribute float translation_z;
+};

@@ -1,0 +1,43 @@
+//rtcore_scene.h 
+
+  /* Intersects a single ray with the scene. */
+  static void intersect1(Scene scene, RTCRayHit rayhit, optional RTCIntersectArguments args);
+
+  /* Intersects a packet of 4 rays with the scene. */
+  static void intersect4(ValidMask valid, Scene scene, RTCRayHit4 rayhit, optional RTCIntersectArguments args);
+
+  /* Intersects a packet of 8 rays with the scene. */
+  static void intersect8(ValidMask valid, Scene scene, RTCRayHit8 rayhit, optional RTCIntersectArguments args);
+
+  /* Intersects a packet of 16 rays with the scene. */
+  static void intersect16(ValidMask valid, Scene scene, RTCRayHit16 rayhit, optional RTCIntersectArguments args);
+
+   /* Forwards ray inside user geometry callback. */
+   static void forwardIntersect1([Const] RTCIntersectFunctionNArguments args, Scene scene, RTCRay ray, unsigned long instID);
+
+   /* Forwards ray inside user geometry callback. Extended to handle instance arrays using instPrimID parameter. */
+   static void forwardIntersect1Ex([Const] RTCIntersectFunctionNArguments args, Scene scene, RTCRay ray, unsigned long instID, unsigned long instPrimID);
+
+  /* Forwards ray packet of size 4 inside user geometry callback. */
+  static void forwardIntersect4(ValidMask valid, [Const] RTCIntersectFunctionNArguments args,
+     Scene scene, RTCRay4 ray, unsigned long instID);
+
+  /* Forwards ray packet of size 4 inside user geometry callback. Extended to handle instance arrays using instPrimID parameter. */
+  static void forwardIntersect4Ex(ValidMask valid, [Const] RTCIntersectFunctionNArguments args,
+     Scene scene, RTCRay4 ray, unsigned long instID, unsigned long primInstID);
+
+  /* Forwards ray packet of size 8 inside user geometry callback. */
+  static void forwardIntersect8(ValidMask valid, [Const] RTCIntersectFunctionNArguments args, 
+    Scene scene, RTCRay8 ray, unsigned long instID);
+
+  /* Forwards ray packet of size 4 inside user geometry callback. Extended to handle instance arrays using instPrimID parameter. */
+  static void forwardIntersect8Ex(ValidMask valid, [Const] RTCIntersectFunctionNArguments args,
+     Scene scene, RTCRay8 ray, unsigned long instID, unsigned long primInstID);
+
+  /* Forwards ray packet of size 16 inside user geometry callback. */
+  static void forwardIntersect16(ValidMask valid, [Const] RTCIntersectFunctionNArguments args,
+     Scene scene, RTCRay16 ray, unsigned long instID);
+
+  /* Forwards ray packet of size 4 inside user geometry callback. Extended to handle instance arrays using instPrimID parameter. */
+  static void forwardIntersect16Ex(ValidMask valid, [Const] RTCIntersectFunctionNArguments args,
+     Scene scene, RTCRay16 ray, unsigned long instID, unsigned long primInstID);

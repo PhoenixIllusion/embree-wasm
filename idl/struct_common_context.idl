@@ -1,0 +1,6 @@
+//rtcore_common.h
+
+/* Ray query context passed to intersect/occluded calls */
+interface RTCRayQueryContext {};
+
+interface RTCPointQueryContext {};

@@ -1,0 +1,7 @@
+//rtcore_builder.h
+
+enum RTCBuildFlags
+{
+  "RTC_BUILD_FLAG_NONE",
+  "RTC_BUILD_FLAG_DYNAMIC"
+};

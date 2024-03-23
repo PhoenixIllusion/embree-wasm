@@ -1,0 +1,12 @@
+//rtcore_common.h
+
+/* Arguments for RTCFilterFunctionN */
+interface RTCFilterFunctionNArguments
+{
+  attribute ValidMask valid;
+  attribute any geometryUserPtr;
+  attribute RTCRayQueryContext context;
+  attribute RTCRayN ray;
+  attribute RTCHitN hit;
+  attribute unsigned long N;
+};

@@ -1,0 +1,16 @@
+//rtcore_scene.h 
+
+  /* Perform a closest point query of the scene. */
+  static boolean pointQuery(Scene scene, RTCPointQuery query, RTCPointQueryContext context, [Ref] RTCPointQueryFunction queryFunc, any userPtr);
+
+  /* Perform a closest point query with a packet of 4 points with the scene. */
+  static boolean pointQuery4(ValidMask valid, Scene scene, RTCPointQuery4 query, RTCPointQueryContext context,
+    [Ref] RTCPointQueryFunction queryFunc, VoidArray userPtr);
+
+  /* Perform a closest point query with a packet of 4 points with the scene. */
+  static boolean pointQuery8(ValidMask valid, Scene scene, RTCPointQuery8 query, RTCPointQueryContext context,
+    [Ref] RTCPointQueryFunction queryFunc, VoidArray userPtr);
+
+  /* Perform a closest point query with a packet of 4 points with the scene. */
+  static boolean pointQuery16(ValidMask valid, Scene scene, RTCPointQuery16 query, RTCPointQueryContext context, 
+    [Ref] RTCPointQueryFunction queryFunc, VoidArray userPtr);

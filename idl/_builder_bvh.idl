@@ -1,0 +1,16 @@
+//rtcore_builder.h
+
+  /* Returns the default build settings.  */
+  [Value] static RTCBuildArguments defaultBuildArguments();
+  
+  /* Creates a new BVH. */
+  static BVH newBVH(Device device);
+
+  /* Builds a BVH. */
+  static any buildBVH([Const] RTCBuildArguments args);
+
+  /* Retains the BVH (increments reference count). */
+  static void retainBVH(BVH bvh);
+
+  /* Releases the BVH (decrements reference count). */
+  static void releaseBVH(BVH bvh);

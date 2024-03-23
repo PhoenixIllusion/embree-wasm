@@ -1,0 +1,8 @@
+//rtcore_quaternion.h
+
+  static void initQuaternionDecomposition(RTCQuaternionDecomposition qdecomp);
+  static void quaternionDecompositionSetQuaternion(RTCQuaternionDecomposition qdecomp, float r, float i, float j, float k);
+  static void quaternionDecompositionSetScale(RTCQuaternionDecomposition qdecomp, float scale_x, float scale_y, float scale_z);
+  static void quaternionDecompositionSetSkew(RTCQuaternionDecomposition qdecomp, float skew_xy, float skew_xz, float skew_yz);
+  static void quaternionDecompositionSetShift(RTCQuaternionDecomposition qdecomp,  float shift_x, float shift_y, float shift_z);
+  static void quaternionDecompositionSetTranslation(RTCQuaternionDecomposition qdecomp, float translation_x, float translation_y, float translation_z);

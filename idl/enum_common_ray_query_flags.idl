@@ -1,0 +1,12 @@
+//rtcore_common.h 
+
+enum RTCRayQueryFlags
+{
+  /* matching intel_ray_flags_t layout */
+  "RTC_RAY_QUERY_FLAG_NONE",
+  "RTC_RAY_QUERY_FLAG_INVOKE_ARGUMENT_FILTER",
+
+  /* embree specific flags */
+  "RTC_RAY_QUERY_FLAG_INCOHERENT",
+  "RTC_RAY_QUERY_FLAG_COHERENT",
+};

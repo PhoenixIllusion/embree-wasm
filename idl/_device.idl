@@ -1,0 +1,18 @@
+//rtcore_device.h
+
+  /* Creates a new Embree device. */
+  static Device newDevice(DOMString config);
+
+  /* Retains the Embree device (increments the reference count). */
+  static void retainDevice(Device device);
+
+  /* Releases an Embree device (decrements the reference count). */
+  static void releaseDevice(Device device);
+
+  /* Gets a device property. */
+  static long getDeviceProperty(Device device, RTCDeviceProperty prop);
+  /* Sets a device property. */
+  static void setDeviceProperty(Device device, [Const] RTCDeviceProperty prop, long value);
+
+  static RTCError getDeviceError(Device device);
+

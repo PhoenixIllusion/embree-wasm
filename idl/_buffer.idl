@@ -1,0 +1,15 @@
+//rtcore_buffer.h
+  /* Creates a new buffer. */
+  static Buffer newBuffer(Device device, unsigned long byteSize);
+
+  /* Creates a new shared buffer. */
+  static Buffer newSharedBuffer(Device device, any ptr, unsigned long byteSize);
+
+  /* Returns a pointer to the buffer data. */
+  static any getBufferData(Buffer buffer);
+
+  /* Retains the buffer (increments the reference count). */
+  static void retainBuffer(Buffer buffer);
+
+  /* Releases the buffer (decrements the reference count). */
+  static void releaseBuffer(Buffer buffer);

@@ -1,0 +1,32 @@
+//rtcore_geometry.h
+
+interface RTCGrid {
+  attribute unsigned long startVertexID;
+  attribute unsigned long stride;
+  attribute unsigned long width;
+  attribute unsigned short height;
+};
+
+/* Arguments for RTCIntersectFunctionN */
+interface RTCIntersectFunctionNArguments
+{
+  attribute ValidMask valid;
+  attribute any geometryUserPtr;
+  attribute unsigned long primID;
+  attribute RTCRayQueryContext context;
+  attribute RTCRayHitN rayhit;
+  attribute unsigned long N;
+  attribute unsigned long geomID;
+};
+
+/* Arguments for RTCOccludedFunctionN */
+interface RTCOccludedFunctionNArguments
+{
+  attribute ValidMask valid;
+  attribute any geometryUserPtr;
+  attribute unsigned long primID;
+  attribute RTCRayQueryContext context;
+  attribute RTCRayN ray;
+  attribute unsigned long N;
+  attribute unsigned long geomID;
+};

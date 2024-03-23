@@ -1,0 +1,17 @@
+//rtcore_scene.h 
+
+/* Additional arguments for rtcIntersect1/4/8/16 calls */
+interface RTCIntersectArguments {
+  void RTCIntersectArguments();
+  attribute RTCRayQueryFlags flags;
+  attribute RTCFeatureFlags feature_mask;
+  attribute RTCRayQueryContext context;
+};
+
+/* Additional arguments for rtcOccluded1/4/8/16 calls */
+interface RTCOccludedArguments {
+  void RTCOccludedArguments();
+  attribute RTCRayQueryFlags flags;
+  attribute RTCFeatureFlags feature_mask;
+  attribute RTCRayQueryContext context;
+};

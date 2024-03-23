@@ -1,0 +1,41 @@
+[NoDelete]
+interface VoidArray {};
+
+[NoDelete]
+interface Device {};
+[NoDelete]
+interface Scene {};
+[NoDelete]
+interface Geometry {};
+[NoDelete]
+interface Buffer {};
+[NoDelete]
+interface BVH {};
+
+// Function Pointers
+[NoDelete]
+interface RTCCreateNodeFunction {};
+[NoDelete]
+interface RTCSetNodeChildrenFunction {};
+[NoDelete]
+interface RTCSetNodeBoundsFunction {};
+[NoDelete]
+interface RTCCreateLeafFunction {};
+[NoDelete]
+interface RTCSplitPrimitiveFunction {};
+
+[NoDelete]
+interface RTCFilterFunctionN {};
+[NoDelete]
+interface RTCPointQueryFunction {};
+[NoDelete]
+interface RTCBoundsFunction {};
+[NoDelete]
+interface RTCIntersectFunctionN {};
+[NoDelete]
+interface RTCOccludedFunctionN {};
+[NoDelete]
+interface RTCDisplacementFunctionN {};
+
+
+interface ValidMask {};

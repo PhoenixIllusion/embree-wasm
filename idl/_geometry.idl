@@ -1,0 +1,141 @@
+//rtcore_geometry.h
+
+  /* Creates a new geometry of specified type. */
+  static Geometry newGeometry(Device device, RTCGeometryType type);
+
+  /* Retains the geometry (increments the reference count). */
+  static void retainGeometry(Geometry geometry);
+
+  /* Releases the geometry (decrements the reference count) */
+  static void releaseGeometry(Geometry geometry);
+
+  /* Commits the geometry. */
+  static void commitGeometry(Geometry geometry);
+
+
+  /* Enables the geometry. */
+  static void enableGeometry(Geometry geometry);
+
+  /* Disables the geometry. */
+  static void disableGeometry(Geometry geometry);
+
+
+  /* Sets the number of motion blur time steps of the geometry. */
+  static void setGeometryTimeStepCount(Geometry geometry, unsigned long timeStepCount);
+
+  /* Sets the motion blur time range of the geometry. */
+  static void setGeometryTimeRange(Geometry geometry, float startTime, float endTime);
+  
+  /* Sets the number of vertex attributes of the geometry. */
+  static void setGeometryVertexAttributeCount(Geometry geometry, unsigned long vertexAttributeCount);
+
+  /* Sets the ray mask of the geometry. */
+  static void setGeometryMask(Geometry geometry, unsigned long mask);
+
+  /* Sets the build quality of the geometry. */
+  static void setGeometryBuildQuality(Geometry geometry, RTCBuildQuality quality);
+
+  /* Sets the maximal curve or point radius scale allowed by min-width feature. */
+  static void setGeometryMaxRadiusScale(Geometry geometry, float maxRadiusScale);
+
+
+  /* Sets a geometry buffer. */
+  static void setGeometryBuffer(Geometry geometry, RTCBufferType type, unsigned long slot, RTCFormat format, 
+      Buffer buffer, unsigned long byteOffset, unsigned long byteStride, unsigned long itemCount);
+
+  /* Sets a shared geometry buffer. */
+  static void setSharedGeometryBuffer(Geometry geometry, RTCBufferType type, unsigned long slot,
+      RTCFormat format, [Const] any ptr, unsigned long byteOffset, unsigned long byteStride, unsigned long itemCount);
+
+  /* Creates and sets a new geometry buffer. */
+  static any setNewGeometryBuffer(Geometry geometry, RTCBufferType type, unsigned long slot, RTCFormat format,
+      unsigned long byteStride, unsigned long itemCount);
+
+  /* Returns the pointer to the data of a buffer. */
+  static any getGeometryBufferData(Geometry geometry, RTCBufferType type, unsigned long slot);
+
+  /* Updates a geometry buffer. */
+  static void updateGeometryBuffer(Geometry geometry, RTCBufferType type, unsigned long slot);
+
+
+  /* Sets the intersection filter callback function of the geometry. */
+  static void setGeometryIntersectFilterFunction(Geometry geometry, [Ref] RTCFilterFunctionN filter);
+
+  /* Sets the occlusion filter callback function of the geometry. */
+  static void setGeometryOccludedFilterFunction(Geometry geometry, [Ref] RTCFilterFunctionN filter);
+
+  /* Enables argument version of intersection or occlusion filter function. */
+  static void setGeometryEnableFilterFunctionFromArguments(Geometry geometry, boolean enable);
+
+  /* Sets the user-defined data pointer of the geometry. */
+  static void setGeometryUserData(Geometry geometry, any ptr);
+
+  /* Gets the user-defined data pointer of the geometry. */
+  static any getGeometryUserData(Geometry geometry);
+
+  /* Set the point query callback function of a geometry. */
+  static void setGeometryPointQueryFunction(Geometry geometry, [Ref] RTCPointQueryFunction pointQuery);
+
+  /* Sets the number of primitives of a user geometry. */
+  static void setGeometryUserPrimitiveCount(Geometry geometry, unsigned long userPrimitiveCount);
+
+  /* Sets the bounding callback function to calculate bounding boxes for user primitives. */
+  static void setGeometryBoundsFunction(Geometry geometry, [Ref] RTCBoundsFunction bounds, any userPtr);
+
+  /* Set the intersect callback function of a user geometry. */
+  static void setGeometryIntersectFunction(Geometry geometry, [Ref] RTCIntersectFunctionN intersect);
+
+  /* Set the occlusion callback function of a user geometry. */
+  static void setGeometryOccludedFunction(Geometry geometry, [Ref] RTCOccludedFunctionN occluded);
+
+  /* Sets the instanced scene of an instance geometry. */
+  static void setGeometryInstancedScene(Geometry geometry, Scene scene);
+
+  /* Sets the instanced scenes of an instance array geometry. */
+  //TODO: SceneArray: static void setGeometryInstancedScenes(Geometry geometry, RTCScene* scenes, unsigned long numScenes);
+
+  /* Sets the transformation of an instance for the specified time step. */
+  static void setGeometryTransform(Geometry geometry, unsigned long timeStep, RTCFormat format, [Const] any xfm);
+
+  /* Sets the transformation quaternion of an instance for the specified time step. */
+  static void setGeometryTransformQuaternion(Geometry geometry, unsigned long timeStep, [Const] RTCQuaternionDecomposition qd);
+
+  /* Returns the interpolated transformation of an instance for the specified time. */
+  static void getGeometryTransform(Geometry geometry, float time, RTCFormat format, any xfm);
+
+/*
+ * Returns the interpolated transformation of the instPrimID'th instance of an
+ * instance array for the specified time. If geometry is an regular instance,
+ * instPrimID must be 0.
+ */
+  static void getGeometryTransformEx(Geometry geometry, unsigned long instPrimID, float time, RTCFormat format, any xfm);
+
+  /* Sets the uniform tessellation rate of the geometry. */
+  static void setGeometryTessellationRate(Geometry geometry, float tessellationRate);
+
+  /* Sets the number of topologies of a subdivision surface. */
+  static void setGeometryTopologyCount(Geometry geometry, unsigned long topologyCount);
+
+  /* Sets the subdivision interpolation mode. */
+  static void setGeometrySubdivisionMode(Geometry geometry, unsigned long topologyID, RTCSubdivisionMode mode);
+
+  /* Binds a vertex attribute to a topology of the geometry. */
+  static void setGeometryVertexAttributeTopology(Geometry geometry, unsigned long vertexAttributeID, unsigned long topologyID);
+
+  /* Sets the displacement callback function of a subdivision surface. */
+  static void setGeometryDisplacementFunction(Geometry geometry, [Ref] RTCDisplacementFunctionN displacement);
+
+  /* Returns the first half edge of a face. */
+  static unsigned long getGeometryFirstHalfEdge(Geometry geometry, unsigned long faceID);
+
+  /* Returns the face the half edge belongs to. */
+  static unsigned long getGeometryFace(Geometry geometry, unsigned long edgeID);
+
+  /* Returns next half edge. */
+  static unsigned long getGeometryNextHalfEdge(Geometry geometry, unsigned long edgeID);
+
+  /* Returns previous half edge. */
+  static unsigned long getGeometryPreviousHalfEdge(Geometry geometry, unsigned long edgeID);
+
+  /* Returns opposite half edge. */
+  static unsigned long getGeometryOppositeHalfEdge(Geometry geometry, unsigned long topologyID, unsigned long edgeID);

@@ -1,0 +1,21 @@
+//rtcore_ray.h
+
+[NoDelete]
+interface RTCRayHitN {};
+
+interface RTCRayHit {
+  [Value] attribute RTCRay ray;
+  [Value] attribute RTCHit hit;
+};
+interface RTCRayHit4 {
+  [Value] attribute RTCRay4 ray;
+  [Value] attribute RTCHit4 hit;
+};
+interface RTCRayHit8 {
+  [Value] attribute RTCRay8 ray;
+  [Value] attribute RTCHit8 hit;
+};
+interface RTCRayHit16 {
+  [Value] attribute RTCRay16 ray;
+  [Value] attribute RTCHit16 hit;
+};

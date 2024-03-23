@@ -1,0 +1,8 @@
+//rtcore_geometry.h
+
+/* Curve segment flags */
+enum RTCCurveFlags
+{
+  "RTC_CURVE_FLAG_NEIGHBOR_LEFT",
+  "RTC_CURVE_FLAG_NEIGHBOR_RIGHT",
+};

@@ -1,0 +1,10 @@
+// Custom Code. Ray has no specific functions in embree
+
+  static RTCRayHit  allocRTCRayHit();
+  static RTCRayHit4 allocRTCRayHit4();
+  static RTCRayHit8 allocRTCRayHit8();
+  static unsigned long sizeOfRTCRayHit();
+  static unsigned long sizeOfRTCRayHit4();
+  static unsigned long sizeOfRTCRayHit8();
+
+  static ValidMask allocRTCRayMask(unsigned long size);

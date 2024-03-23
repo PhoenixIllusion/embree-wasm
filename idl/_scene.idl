@@ -1,0 +1,47 @@
+  //rtcore_scene.h 
+
+  /* Initializes intersection arguments. */
+  static void initIntersectArguments(RTCIntersectArguments iargs);
+  /* Initializes an intersection arguments. */
+  static void initOccludedArguments(RTCOccludedArguments iargs);
+
+  /* Creates a new scene. */
+  static Scene newScene(Device g_device);
+
+  static void releaseScene(Scene scene);
+
+  /* Attaches the geometry to a scene. */
+  static unsigned long attachGeometry(Scene scene, Geometry geometry);
+
+  /* Attaches the geometry to a scene using the specified geometry ID. */
+  static void attachGeometryByID(Scene scene, Geometry geometry, unsigned long geomID);
+
+  /* Detaches the geometry from the scene. */
+  static void detachGeometry(Scene scene, unsigned long geomID);
+
+  /* Gets a geometry handle from the scene. This function is not thread safe and should get used during rendering. */
+  static Geometry getGeometry(Scene scene, unsigned long geomID);
+
+  /* Gets a geometry handle from the scene. This function is thread safe and should NOT get used during rendering. */
+  static Geometry getGeometryThreadSafe(Scene scene, unsigned long geomID);
+
+  /* Commits the scene. */
+  static void commitScene(Scene scene);
+
+  /* Commits the scene from multiple threads. */
+  static void joinCommitScene(Scene scene);
+
+  /* Sets the build quality of the scene. */
+  static void setSceneBuildQuality(Scene scene, RTCBuildQuality quality);
+
+  /* Sets the scene flags. */
+  static void setSceneFlags(Scene scene, RTCSceneFlags flags);
+
+  /* Returns the scene flags. */
+  static RTCSceneFlags getSceneFlags(Scene scene);
+
+  /* Returns the axis-aligned bounds of the scene. */
+  static void getSceneBounds(Scene scene, RTCBounds bounds_o);
+
+  /* Returns the linear axis-aligned bounds of the scene. */
+  static void getSceneLinearBounds(Scene scene, RTCLinearBounds bounds_o);

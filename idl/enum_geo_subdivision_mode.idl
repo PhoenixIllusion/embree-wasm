@@ -1,0 +1,11 @@
+//rtcore_geometry.h
+
+/* Interpolation modes for subdivision surfaces */
+enum RTCSubdivisionMode
+{
+  "RTC_SUBDIVISION_MODE_NO_BOUNDARY",
+  "RTC_SUBDIVISION_MODE_SMOOTH_BOUNDARY",
+  "RTC_SUBDIVISION_MODE_PIN_CORNERS",
+  "RTC_SUBDIVISION_MODE_PIN_BOUNDARY",
+  "RTC_SUBDIVISION_MODE_PIN_ALL",
+};

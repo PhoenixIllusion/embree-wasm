@@ -1,0 +1,9 @@
+//rtcore_common.h
+/* Build quality levels */
+enum RTCBuildQuality
+{
+  "RTC_BUILD_QUALITY_LOW",
+  "RTC_BUILD_QUALITY_MEDIUM",
+  "RTC_BUILD_QUALITY_HIGH",
+  "RTC_BUILD_QUALITY_REFIT",
+};

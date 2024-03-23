@@ -1,0 +1,40 @@
+//rtccore_builder.h
+
+interface RTCBuildPrimitive {
+  attribute float lower_x;
+  attribute float lower_y;
+  attribute float lower_z;
+  attribute unsigned long geomID;
+  attribute float upper_x;
+  attribute float upper_y;
+  attribute float upper_z;
+  attribute unsigned long primID;
+};
+
+interface RTCBuildPrimitiveArray {
+  void RTCBuildPrimitiveArray(unsigned long size);
+  RTCBuildPrimitive get(long i);
+  void set(long i, [Const] RTCBuildPrimitive value);
+  RTCBuildPrimitive ptr();
+};
+
+interface RTCBuildArguments {
+  attribute unsigned long byteSize;
+  
+  attribute RTCBuildQuality buildQuality;
+  attribute RTCBuildFlags buildFlags;
+  attribute unsigned long maxBranchingFactor;
+  attribute unsigned long maxDepth;
+  attribute unsigned long sahBlockSize;
+  attribute unsigned long minLeafSize;
+  attribute unsigned long maxLeafSize;
+  attribute float traversalCost;
+  attribute float intersectionCost;
+  
+  attribute BVH bvh;
+  attribute RTCBuildPrimitive primitives;
+  attribute unsigned long primitiveCount;
+  attribute unsigned long primitiveArrayCapacity;
+
+  attribute any userPtr;
+};

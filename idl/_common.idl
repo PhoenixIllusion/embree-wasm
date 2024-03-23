@@ -1,0 +1,7 @@
+//rtcore_common.h
+
+  /* Initializes an ray query context. */
+  static void initRayQueryContext(RTCRayQueryContext context);
+
+  /* Initializes an ray query context. */
+  static void initPointQueryContext(RTCPointQueryContext context);

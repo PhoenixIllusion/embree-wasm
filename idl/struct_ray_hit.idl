@@ -1,0 +1,50 @@
+//rtcore_ray.h
+
+[NoDelete]
+interface RTCHitN {};
+
+interface RTCHit {
+  attribute float Ng_x;          // x coordinate of geometry normal
+  attribute float Ng_y;          // y coordinate of geometry normal
+  attribute float Ng_z;          // z coordinate of geometry normal
+
+  attribute float u;             // barycentric u coordinate of hit
+  attribute float v;             // barycentric v coordinate of hit
+
+  attribute unsigned long  primID; // primitive ID
+  attribute unsigned long  geomID; // geometry ID
+};
+interface RTCHit4 {
+  attribute float[] Ng_x;          // x coordinate of geometry normal
+  attribute float[] Ng_y;          // y coordinate of geometry normal
+  attribute float[] Ng_z;          // z coordinate of geometry normal
+
+  attribute float[] u;             // barycentric u coordinate of hit
+  attribute float[] v;             // barycentric v coordinate of hit
+
+  attribute unsigned long[]  primID; // primitive ID
+  attribute unsigned long[]  geomID; // geometry ID
+};
+interface RTCHit8 {
+  attribute float[] Ng_x;          // x coordinate of geometry normal
+  attribute float[] Ng_y;          // y coordinate of geometry normal
+  attribute float[] Ng_z;          // z coordinate of geometry normal
+
+  attribute float[] u;             // barycentric u coordinate of hit
+  attribute float[] v;             // barycentric v coordinate of hit
+
+  attribute unsigned long[]  primID; // primitive ID
+  attribute unsigned long[]  geomID; // geometry ID
+};
+
+interface RTCHit16 {
+  attribute float[] Ng_x;          // x coordinate of geometry normal
+  attribute float[] Ng_y;          // y coordinate of geometry normal
+  attribute float[] Ng_z;          // z coordinate of geometry normal
+
+  attribute float[] u;             // barycentric u coordinate of hit
+  attribute float[] v;             // barycentric v coordinate of hit
+
+  attribute unsigned long[]  primID; // primitive ID
+  attribute unsigned long[]  geomID; // geometry ID
+};

@@ -1,0 +1,46 @@
+//rtcore_common.h
+
+[NoDelete]
+interface RTCPointQueryN {};
+
+/* Point query structure for closest point query */
+interface RTCPointQuery {
+  attribute float x;                // x coordinate of the query point
+  attribute float y;                // y coordinate of the query point
+  attribute float z;                // z coordinate of the query point
+  attribute float time;             // time of the point query
+  attribute float radius;           // radius of the point query 
+};
+
+interface RTCPointQuery4 {
+  attribute float[] x;                // x coordinate of the query point
+  attribute float[] y;                // y coordinate of the query point
+  attribute float[] z;                // z coordinate of the query point
+  attribute float[] time;             // time of the point query
+  attribute float[] radius;           // radius of the point query
+};
+
+interface RTCPointQuery8 {
+  attribute float[] x;                // x coordinate of the query point
+  attribute float[] y;                // y coordinate of the query point
+  attribute float[] z;                // z coordinate of the query point
+  attribute float[] time;             // time of the point query
+  attribute float[] radius;           // radius of the point query
+};
+
+interface RTCPointQuery16 {
+  attribute float[] x;                // x coordinate of the query point
+  attribute float[] y;                // y coordinate of the query point
+  attribute float[] z;                // z coordinate of the query point
+  attribute float[] time;             // time of the point query
+  attribute float[] radius;           // radius of the point query
+};
+
+interface RTCPointQueryFunctionArguments {
+  attribute RTCPointQuery query;
+  attribute any userPtr;
+  attribute unsigned long primID;
+  attribute unsigned long geomID;
+  attribute RTCPointQueryContext context;
+  attribute float similarityScale;
+};

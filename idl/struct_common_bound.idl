@@ -1,0 +1,19 @@
+//rtcore_common.h
+
+/* Axis-aligned bounding box representation */
+interface RTCBounds {
+  attribute float lower_x;
+  attribute float lower_y;
+  attribute float lower_z;
+  attribute float align0;
+  attribute float upper_x;
+  attribute float upper_y;
+  attribute float upper_z;
+  attribute float align1;
+};
+
+/* Linear axis-aligned bounding box representation */
+interface RTCLinearBounds {
+  [Value] attribute RTCBounds bounds0;
+  [Value] attribute RTCBounds bounds1;
+};

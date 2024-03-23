@@ -1,0 +1,38 @@
+//rtcore_scene.h 
+
+
+   /* Tests a single ray for occlusion with the scene. */
+   static void occluded1(Scene scene, RTCRay ray, optional RTCOccludedArguments args);
+
+  /* Tests a packet of 4 rays for occlusion occluded with the scene. */
+  static void occluded4(ValidMask valid, Scene scene, RTCRay4 ray, optional RTCOccludedArguments args);
+
+  /* Tests a packet of 8 rays for occlusion with the scene. */
+  static void occluded8(ValidMask valid, Scene scene, RTCRay8 ray, optional RTCOccludedArguments args);
+
+  /* Tests a packet of 16 rays for occlusion with the scene. */
+  static void occluded16(ValidMask valid, Scene scene, RTCRay16 ray, optional RTCOccludedArguments args);
+
+  /* Forwards occlusion ray packet of size 4 inside user geometry callback. */
+  static void forwardOccluded4(ValidMask valid, [Const] RTCOccludedFunctionNArguments args,
+     Scene scene, RTCRay4 ray, unsigned long instID);
+
+  /* Forwards occlusion ray packet of size 4 inside user geometry callback. Extended to handle instance arrays using instPrimID parameter. */
+  static void forwardOccluded4Ex(ValidMask valid, [Const] RTCOccludedFunctionNArguments args,
+     Scene scene, RTCRay4 ray, unsigned long instID, unsigned long instPrimID);
+
+  /* Forwards occlusion ray packet of size 8 inside user geometry callback. */
+  static void forwardOccluded8(ValidMask valid, [Const] RTCOccludedFunctionNArguments args,
+     Scene scene, RTCRay8 ray, unsigned long instID);
+
+  /* Forwards occlusion ray packet of size 8 inside user geometry callback. Extended to handle instance arrays using instPrimID parameter. */
+  static void forwardOccluded8Ex(ValidMask valid, [Const] RTCOccludedFunctionNArguments args,
+     Scene scene, RTCRay8 ray, unsigned long instID, unsigned long instPrimID);
+
+  /* Forwards occlusion ray packet of size 16 inside user geometry callback. */
+  static void forwardOccluded16(ValidMask valid, [Const] RTCOccludedFunctionNArguments args,
+     Scene scene, RTCRay16 ray, unsigned long instID);
+
+  /* Forwards occlusion ray packet of size 16 inside user geometry callback. Extended to handle instance arrays using instPrimID parameter. */
+  static void forwardOccluded16Ex(ValidMask valid, [Const] RTCOccludedFunctionNArguments args,
+     Scene scene, RTCRay16 ray, unsigned long instID, unsigned long instPrimID);
