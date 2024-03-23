@@ -2,6 +2,7 @@
 
 This project uses CMake to build a WebIDL bound version of Embree4.
 https://github.com/embree/embree
+https://emscripten.org/docs/porting/connecting_cpp_and_javascript/WebIDL-Binder.html
 
 I am not affiliated with Embree and have no position in this project. All code here is made as a personal project and has no guarantees. 
 
@@ -10,7 +11,7 @@ Due to the C-function nature of Embree, most functions in the rtcore_* are wrapp
 ### Building
 The build has been setup to use multiple IDL file fragments to compose a final IDL file. Custom builds may be made by modifying or conditionally including these files to include as much or little functionality as you want.
 
-The IDL fragments containing rtcFunctions have the originating Header.H file note at the top. During the build process, these originating Header files will be accessed out of the Embree project and REGEX analyzed (warning, no guarantees on stability of this) to attempt to derive the method names and parameters. These will then be dynamically generated into the singleton object and forwarded from JS-to-Singleton-to-Embree.
+The IDL fragments containing rtcFunctions have the originating Header.H file note at the top. During the build process, these originating Header files will be accessed out of the Embree project and REGEX analyzed (warning, no guarantees on stability of this) to attempt to derive the method names and parameters. These files will write temporary headers, which will then be dynamically included into the singleton RTC object to form the JS-to-Singleton-to-Embree interface.
 
 This project requires Emscripten and NodeJS to build. 
 I personally use:
@@ -24,9 +25,10 @@ To build, run `sh build.sh`
 The build will produce a `dist` folder containing:
 * embree.d.ts - typescript typing
 * embree.js - Emscripten loader module and WebIDL binding
-* embree.wasm - Core WASM module - ~7.7MB in side, compressable to 1.5-2MB using zip compression if needed.
+* embree.wasm - Core WASM module - ~7.7MB in size, compressible to 1.5-2MB using zip compression if needed.
 
 If compressing the library, most browsers should support using decompression-streams to stream a raw compressed stream directly into the streaming-compile of wasm, though most server hosting will allow transparent compression.
+
 https://developer.mozilla.org/en-US/docs/Web/API/Compression_Streams_API
 https://developer.mozilla.org/en-US/docs/WebAssembly/JavaScript_interface/instantiateStreaming_static
 
@@ -45,14 +47,14 @@ Custom methods have been added for:
 
 ### Usage
 ```typescript
-import  Embree  from  './em/embree';  
+import Embree from './em/embree'; 
 // Hacks to make 'static' methods act as
 // WebIDL Typescript generator expects
-const RTC  = (embree.RTC.prototype  as  typeof  Embree.RTC);
+const RTC = (embree.RTC.prototype as typeof Embree.RTC);
 
 function addGroundPlane(device: Embree.Device, scene: Embree.Scene) {
-  const  mesh  =  RTC.newGeometry(device,   embree.RTC_GEOMETRY_TYPE_TRIANGLE);
-  const  vertices = RTC.setNewGeometryBuffer(
+  const mesh = RTC.newGeometry(device, embree.RTC_GEOMETRY_TYPE_TRIANGLE);
+  const vertices = RTC.setNewGeometryBuffer(
     mesh, embree.RTC_BUFFER_TYPE_VERTEX,
     0, embree.RTC_FORMAT_FLOAT3,
     4 * 4, 4);
@@ -70,15 +72,15 @@ function addGroundPlane(device: Embree.Device, scene: Embree.Scene) {
     0,embree.RTC_FORMAT_UINT3,
     3 * 4, 2);
 
-  const u32_index  =  new  Uint32Array(embree.HEAP8.buffer, triangles, 6);
+  const u32_index = new Uint32Array(embree.HEAP8.buffer, triangles, 6);
   u32_index.set([ 0, 1, 2, 1, 3, 2]);
 
   RTC.commitGeometry(mesh);
-  const  geomID  =  RTC.attachGeometry(scene, mesh);
+  const geomID = RTC.attachGeometry(scene, mesh);
   RTC.releaseGeometry(mesh);
-  return  geomID;
+  return geomID;
 }
-const  device  =  RTC.newDevice('verbose=3,threads=1,tessellation_cache_size=0');  
+const device = RTC.newDevice('verbose=3,threads=1,tessellation_cache_size=0');
 addGroundPlane(device, scene);
 RTC.commitScene(scene);
 
@@ -144,7 +146,7 @@ To instance the scene, you will need to first create the above scene (BLAS), the
 const INSTANCE_COUNT = 8;
 const transformMatrix_ptr = embree._malloc(INSTANCE_COUNT * 4 * 16);
 const transformMatrix = [];
-for(let i=0;i<INSTANCE_COUNT;i++) {
+for(let i = 0; i < INSTANCE_COUNT; i++) {
   transformMatrix[i] = new Float32Array(embree.HEAP8.buffer, transformMatrix_ptr + i*4 * 16, 16);
 }
 
@@ -170,7 +172,7 @@ mat4.fromRotationTranslation(transformMatrix[5], quat.setAxisAngle(quat.create()
 mat4.fromRotationTranslation(transformMatrix[6], quat.setAxisAngle(quat.create(), [0,1,0], Math.PI/6), [-0.25,0.5,.5])
 mat4.fromRotationTranslation(transformMatrix[7], quat.setAxisAngle(quat.create(), [0,1,0], Math.PI), [1.5,0.5,.5])
 
-for(let i=0;i<INSTANCE_COUNT;i++) {
+for(let i = 0; i < INSTANCE_COUNT; i++) {
   rabbits.push(createRabbitInstance(scene, rabbitScene, rabbitIndex++));
 }
 
