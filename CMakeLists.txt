@@ -56,6 +56,7 @@ set(ALLOW_MEMORY_GROWTH 0 CACHE STRING "Allow Memory Growth")
 set(EMCC_ARGS
   -s WASM=1
   --no-entry 
+  --post-js glue.js
   -s MODULARIZE=1 
   -s EXPORT_ES6=1 
   -s NO_EXIT_RUNTIME=1 

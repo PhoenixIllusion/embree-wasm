@@ -122,32 +122,21 @@ async function addRabbit(device: Embree.Device): Promise<Embree.Scene> {
   const rabbitData = await loadModel('bunny.obj');
 
   const vertexCount = rabbitData.vertices.length/4
-  const vertexBufferPtr = embree._malloc(rabbitData.vertices.length*4);
-  const f32vertex = new Float32Array(embree.HEAP8.buffer, vertexBufferPtr, rabbitData.vertices.length);
-  f32vertex.set(rabbitData.vertices);
-  const vertexSharedBuffer = RTC.newSharedBuffer(device, vertexBufferPtr, rabbitData.vertices.length*4);
-
-  const chunkSize = rabbitData.index.length;
-  const indexCount = chunkSize/3;
-  const indexBufferPtr = embree._malloc(chunkSize * 4);
-  const u32_index = new Uint32Array(embree.HEAP8.buffer, indexBufferPtr, chunkSize);
-  u32_index.set(rabbitData.index.subarray(0, chunkSize));
-  const sharedBuffer = RTC.newSharedBuffer(device, indexBufferPtr, chunkSize * 4);
-
+  const indexCount = rabbitData.index.length/3;
 
   const mesh = RTC.newGeometry(device, embree.RTC_GEOMETRY_TYPE_TRIANGLE);
-  RTC.setGeometryBuffer(
+  const vertexBufferPtr = RTC.setNewGeometryBuffer(
     mesh, embree.RTC_BUFFER_TYPE_VERTEX,
     0, embree.RTC_FORMAT_FLOAT3,
-    vertexSharedBuffer,
-    0, 4*4, vertexCount);
+    4*4, vertexCount);
+  embree.HEAPF32.set(rabbitData.vertices, vertexBufferPtr/4);
 
 
-  RTC.setGeometryBuffer(
+  const indexBufferPtr = RTC.setNewGeometryBuffer(
     mesh,embree.RTC_BUFFER_TYPE_INDEX,
     0, embree.RTC_FORMAT_UINT3,
-    sharedBuffer,
-    0, 3 * 4, indexCount);
+    3 * 4, indexCount);
+  embree.HEAPU32.set(rabbitData.index, indexBufferPtr/4);
 
   RTC.commitGeometry(mesh);
   const scene = RTC.newScene(device);
@@ -166,7 +155,7 @@ for(let i=0;i<INSTANCE_COUNT;i++) {
 
 function createRabbitInstance(scene: Embree.Scene, rabbit: Embree.Scene, instance: number): Embree.Geometry {
   const g_instance0 = RTC.newGeometry(device, embree.RTC_GEOMETRY_TYPE_INSTANCE);
-  RTC.setGeometryInstancedScene(g_instance0,rabbitScene);
+  RTC.setGeometryInstancedScene(g_instance0, rabbit);
   RTC.setGeometryTimeStepCount(g_instance0,1);
   RTC.attachGeometry(scene, g_instance0);
   RTC.releaseGeometry(g_instance0);
