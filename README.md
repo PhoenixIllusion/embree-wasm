@@ -7,9 +7,28 @@ I am not affiliated with Embree and have no position in this project. All code h
 
 Due to the C-function nature of Embree, most functions in the rtcore_* are wrapped under a singular `RTC` object and accessed statically.
 
+### Building
 The build has been setup to use multiple IDL file fragments to compose a final IDL file. Custom builds may be made by modifying or conditionally including these files to include as much or little functionality as you want.
 
 The IDL fragments containing rtcFunctions have the originating Header.H file note at the top. During the build process, these originating Header files will be accessed out of the Embree project and REGEX analyzed (warning, no guarantees on stability of this) to attempt to derive the method names and parameters. These will then be dynamically generated into the singleton object and forwarded from JS-to-Singleton-to-Embree.
+
+This project requires Emscripten and NodeJS to build. 
+I personally use:
+* EMSDK - https://emscripten.org/docs/tools_reference/emsdk.html 
+* NVM - https://github.com/nvm-sh/nvm
+
+EMSDK will require Python3 as well for the webidl_binder and core emscripten functionality.
+NodeJS will be used to transform the IDL into header files, and for the NPX command used to produce the Typescript typing files (*.d.ts)
+
+To build, run `sh build.sh`
+The build will produce a `dist` folder containing:
+* embree.d.ts - typescript typing
+* embree.js - Emscripten loader module and WebIDL binding
+* embree.wasm - Core WASM module - ~7.7MB in side, compressable to 1.5-2MB using zip compression if needed.
+
+If compressing the library, most browsers should support using decompression-streams to stream a raw compressed stream directly into the streaming-compile of wasm, though most server hosting will allow transparent compression.
+https://developer.mozilla.org/en-US/docs/Web/API/Compression_Streams_API
+https://developer.mozilla.org/en-US/docs/WebAssembly/JavaScript_interface/instantiateStreaming_static
 
 ### Memory Warning
 By default, the `tessellation_cach_size` for the project will cause Embree4 to by default attempt to allocate over 100MB of RAM. You can keep this as-is and enable a higher TOTAL_MEMORY, or when requesting a device send the config `tessellation_cache_size=0`.
@@ -67,7 +86,11 @@ RTC.commitScene(scene);
 ```
 
 For instanced geometry, Embree4 uses instanced-scenes, so that a committed scene can preserve it's BVH that has been built between instances. *Note: Normals returned by an instanced geometry will not be transformed back to initial ray-space, so you will need to test the instance you collided with and inverse the transform on the normal yourself.*
+
+
 ![Stanford Bunny Instances](doc/stanford-bunny-instances.jpg)
+
+
 Demo code:
 ```typescript
 const scene = RTC.newScene(device);
@@ -115,7 +138,7 @@ The above could also be done using a SharedBuffer
     0, 4*4, vertexCount);
 ```
 
-To instance the scene, you will need to first create the above scene (bvh), then create a new Geometry of `RTC_GEOMETRY_TYPE_INSTANCE` and assign the rabbit scene to the Geometry via `setGeometryInstancedScene` , before you can use the geometry in the larger parent scene as an instance.
+To instance the scene, you will need to first create the above scene (BLAS), then create a new Geometry of `RTC_GEOMETRY_TYPE_INSTANCE` and assign the rabbit scene to the Geometry via `setGeometryInstancedScene` , before you can use the geometry in the larger parent scene as an instance (TLAS).
 
 ```typescript
 const INSTANCE_COUNT = 8;
@@ -155,3 +178,5 @@ RTC.commitScene(scene);
 ```
 
 The test project is currently under development to confirm functionality. It references the Stanford bunny (not included in the project).
+https://en.wikipedia.org/wiki/Stanford_bunny
+This is about a 70,000 triangle model.
