@@ -7,7 +7,7 @@ import { clamp } from "../common/math/math";
 import { float, uint } from "../common/types";
 
 
-const USE_VERTEX_COLOR = true;
+const USE_VERTEX_COLOR = false;
 
 const v = {
   dir: vec3.create(),
@@ -37,6 +37,12 @@ class TriangleGeometryTutorial extends TutorialApplication {
   private interpolate!: Float32Array;
 
   private data!: TutorialData;
+
+  constructor() {
+    super('CurveGeometryTutorial',[],50,50);
+    vec3.set(this.camera.from, 1.5,1.5,-1.5);
+    vec3.set(this.camera.to, 0, 0, 0);
+  }
 
   addCube (scene_i: Embree.Scene): uint
 {
@@ -101,11 +107,6 @@ class TriangleGeometryTutorial extends TutorialApplication {
   return geomID;
 }
 
-  constructor() {
-    super('CurveGeometryTutorial',[],50,50);
-    vec3.set(this.camera.from, -1.5,3.5,3.5);
-    vec3.set(this.camera.to, 0, 0, 0);
-  }
 
   addGroundPlane (scene_i: Embree.Scene)
   {

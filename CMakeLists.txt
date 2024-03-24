@@ -82,6 +82,7 @@ set(EMCC_ARGS
   -I ${CMAKE_CURRENT_SOURCE_DIR}
   -I ${EMBREE_INCLUDE}
   -include ${CMAKE_CURRENT_SOURCE_DIR}/embree_idl.h
+  -s EXPORTED_FUNCTIONS=_memalign,_malloc,_free
 )
 
 if ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")

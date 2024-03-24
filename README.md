@@ -1,3 +1,4 @@
+
 ## Embree WASM build
 
 This project uses CMake to build a WebIDL bound version of Embree4.
@@ -13,6 +14,12 @@ The build has been setup to use multiple IDL file fragments to compose a final I
 
 The IDL fragments containing rtcFunctions have the originating Header.H file note at the top. During the build process, these originating Header files will be accessed out of the Embree project and REGEX analyzed (warning, no guarantees on stability of this) to attempt to derive the method names and parameters. These files will write temporary headers, which will then be dynamically included into the singleton RTC object to form the JS-to-Singleton-to-Embree interface.
 
+Additional methods are added to the Typing and Javascript using the *.extras files. Mainly these deal with memory alignment/management or wrapping/unwrapping of arrays.
+
+#### Docker
+There is a docker file that will build the project using the standard Emscripten docker image. This may be changed to alpine and a custom configuration in the future if it is smaller and trustworthy.
+
+#### Non Docker
 This project requires Emscripten and NodeJS to build. 
 I personally use:
 * EMSDK - https://emscripten.org/docs/tools_reference/emsdk.html 
@@ -44,6 +51,28 @@ Custom methods have been added for:
 3. **SizeOf RayHit** - to assist in direct memory access via Linear memory locations, or assist JS performing a memset to clear the memory of a RayHit between queries.
 4. **Allocate RayMask** - this is simply a `int*` allocator, required for the mask-param in any multi-intersect (4/8/16) calls or associated point-query/occlude for the `valid` parameter. Named as `RayMask` in the WebIDL side for typing purposes.
 5. **tileIntersect(1|4)** - demo routines added for personal testing purposes. They will render a tile of data in a single call, and save offset/stride segments of the RayHit item to a supplied buffer, such as just the Z channel of a Ray4 or just the across all 4-units worth of a Ng 12-byte channel for storing hit normals.
+6. **alloc/wrap/copy Typed Array** - These methods deal with creation of typed arrays on the Heap. You can pass them to functions using the `typed_array_foo.byteOffset`value. This is understood by web IDL correctly as the pointer. These methods use the Typed Array's knowledge of their own element size during creation, so use element count, not byte size when referencing length
+	1) **Wrap** - (pointer, N length, type) - will take a pointer (such as from C) and wrap it in a typed array of N length. The library has no knowledge of the actual when given an arbitrary poitner length, so it must be provided.
+	2) **Alloc** ( N length, type) - will allocate an array of N items. (2, F32) will allocate 8 bytes. This will then call wrap using the N length.
+	3) **Copy** ( array-like, type)- will take an existing array and type, then perform alloc, wrap, and set the contents of the array. 
+7. **alloc/wrap/copy Aligned Type Array** This is the same as above, but uses memalign due to how many internal methods require specific alignment 
+
+### Tutorial
+
+Parts of the tutorial code are being ported over. As of now, it is not 1-to-1 in the Tutorial Application architecture, but the section is a work-in-progress.
+
+Parts of the AffineSpace3f have been ported to the tutorial code, as have parts of the ISPCCamera
+
+##### Triangle Geometry
+![Triangle Geometry - Normal ](doc/tutorial-triangle-geometry.jpg)
+![Triangle Geometry - Interpolated](doc/tutorial-triangle-geometry-interp.jpg)
+
+*An unused vertex color array was in the tutorial, so a flag was added to the file to turn this off or on and switch from face to vertex coloring* 
+
+##### Curve Geometry
+![Curve Geometry - Interpolated](doc/tutorial-curved-geometry.jpg)
+
+*These were referred to as hairs in the code, but this is just curve rendering in the demo* 
 
 ### Usage
 ```typescript
