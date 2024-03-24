@@ -1,3 +1,6 @@
+#!/bin/bash
+set -e
+
 EMBREE_HEADERS=$1
 IDL_DIRECTORY=$2
 PARSER_DIRECTORY=$3

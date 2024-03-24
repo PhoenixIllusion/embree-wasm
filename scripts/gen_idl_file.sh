@@ -1,3 +1,6 @@
+#!/bin/bash
+set -e
+
 SOURCE_FOLDER=$1
 
 cat "${SOURCE_FOLDER}/types.idl" 

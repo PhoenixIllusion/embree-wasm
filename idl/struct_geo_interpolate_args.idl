@@ -1,3 +1,17 @@
 //rtcore_geometry.h
 
-//TODO: Haven't looked into interpolation and pointer usage
+interface RTCInterpolateArguments {
+  attribute Geometry geometry;
+  attribute unsigned long primID;
+  attribute float u;
+  attribute float v;
+  attribute RTCBufferType bufferType;
+  attribute unsigned long bufferSlot;
+  attribute FloatPtr P;
+  attribute FloatPtr dPdu;
+  attribute FloatPtr dPdv;
+  attribute FloatPtr ddPdudu;
+  attribute FloatPtr ddPdvdv;
+  attribute FloatPtr ddPdudv;
+  attribute unsigned long valueCount;
+};

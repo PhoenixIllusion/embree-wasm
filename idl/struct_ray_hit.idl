@@ -4,6 +4,7 @@
 interface RTCHitN {};
 
 interface RTCHit {
+  void RTCHit();
   attribute float Ng_x;          // x coordinate of geometry normal
   attribute float Ng_y;          // y coordinate of geometry normal
   attribute float Ng_z;          // z coordinate of geometry normal
@@ -15,6 +16,7 @@ interface RTCHit {
   attribute unsigned long  geomID; // geometry ID
 };
 interface RTCHit4 {
+  void RTCHit4();
   attribute float[] Ng_x;          // x coordinate of geometry normal
   attribute float[] Ng_y;          // y coordinate of geometry normal
   attribute float[] Ng_z;          // z coordinate of geometry normal
@@ -26,6 +28,7 @@ interface RTCHit4 {
   attribute unsigned long[]  geomID; // geometry ID
 };
 interface RTCHit8 {
+  void RTCHit8();
   attribute float[] Ng_x;          // x coordinate of geometry normal
   attribute float[] Ng_y;          // y coordinate of geometry normal
   attribute float[] Ng_z;          // z coordinate of geometry normal
@@ -38,6 +41,7 @@ interface RTCHit8 {
 };
 
 interface RTCHit16 {
+  void RTCHit16();
   attribute float[] Ng_x;          // x coordinate of geometry normal
   attribute float[] Ng_y;          // y coordinate of geometry normal
   attribute float[] Ng_z;          // z coordinate of geometry normal

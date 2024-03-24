@@ -6,6 +6,7 @@
 #include <unistd.h>
 
 using VoidArray = void *;
+using FloatPtr = float;
 using Device = RTCDeviceTy;
 using Scene = RTCSceneTy;
 using Geometry = RTCGeometryTy;

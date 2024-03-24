@@ -4,6 +4,7 @@
 interface RTCRayN {};
 
 interface RTCRay {
+  void RTCRay();
   attribute float org_x;        // x coordinate of ray origin
   attribute float org_y;        // y coordinate of ray origin
   attribute float org_z;        // z coordinate of ray origin
@@ -21,6 +22,7 @@ interface RTCRay {
 };
 
 interface RTCRay4 {
+  void RTCRay4();
   attribute float[] org_x;        // x coordinate of ray origin
   attribute float[] org_y;        // y coordinate of ray origin
   attribute float[] org_z;        // z coordinate of ray origin
@@ -38,6 +40,7 @@ interface RTCRay4 {
 };
 
 interface RTCRay8 {
+  void RTCRay8();
   attribute float[] org_x;        // x coordinate of ray origin
   attribute float[] org_y;        // y coordinate of ray origin
   attribute float[] org_z;        // z coordinate of ray origin
@@ -55,6 +58,7 @@ interface RTCRay8 {
 };
 
 interface RTCRay16 {
+  void RTCRay16();
   attribute float[] org_x;        // x coordinate of ray origin
   attribute float[] org_y;        // y coordinate of ray origin
   attribute float[] org_z;        // z coordinate of ray origin

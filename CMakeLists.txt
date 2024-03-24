@@ -151,7 +151,7 @@ add_custom_target(Embree-Wasm-bindings ALL DEPENDS glue.js glue.o)
 add_custom_command(
   OUTPUT ${OUTPUT_FOLDER}embree.js ${OUTPUT_FOLDER}embree.wasm
   COMMAND emcc glue.o ${EMBREE_STATIC_LIBS} ${EMCC_ARGS} -o ${OUTPUT_FOLDER}embree.js
-  DEPENDS Embree-Wasm-bindings Embree-Wasm-generated embree ${EMBREE_LIBRARIES} ${GLUE_EXTRAS}
+  DEPENDS Embree-Wasm-bindings Embree-Wasm-generated embree ${EMBREE_LIBRARIES} ${GLUE_EXTRAS} glue.o
   COMMENT "Building Embree.js webassembly"
   VERBATIM)
 add_custom_target(Embree-wasm ALL DEPENDS ${OUTPUT_FOLDER}embree.js ${OUTPUT_FOLDER}embree.wasm)

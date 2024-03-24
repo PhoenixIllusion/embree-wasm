@@ -139,3 +139,18 @@
 
   /* Returns opposite half edge. */
   static unsigned long getGeometryOppositeHalfEdge(Geometry geometry, unsigned long topologyID, unsigned long edgeID);
+
+  /* Interpolates vertex data to some u/v location and optionally calculates all derivatives. */
+  static void interpolate(RTCInterpolateArguments args);
+
+  /* Interpolates vertex data to some u/v location. */
+  static void interpolate0(Geometry geometry, unsigned long primID, float u, float v, RTCBufferType bufferType, 
+    unsigned long bufferSlot, FloatPtr P, unsigned long valueCount);
+
+  /* Interpolates vertex data to some u/v location and calculates first order derivatives. */
+  static void interpolate1(Geometry geometry, unsigned long primID, float u, float v, RTCBufferType bufferType, 
+    unsigned long bufferSlot, FloatPtr P, FloatPtr dPdu, FloatPtr dPdv, unsigned long valueCount);
+
+  /* Interpolates vertex data to some u/v location and calculates first and second order derivatives. */
+  static void interpolate2(Geometry geometry, unsigned long primID, float u, float v, RTCBufferType bufferType, unsigned long bufferSlot,
+                                     FloatPtr P, FloatPtr dPdu, FloatPtr dPdv, FloatPtr ddPdudu, FloatPtr ddPdvdv, FloatPtr ddPdudv, unsigned long valueCount);
