@@ -65,15 +65,12 @@ function resetRay(ray: Embree.RTCRayHit) {
 }
 
 function render(out: Uint8ClampedArray, width: number, height: number, buffer: Float32Array, range: { min: number, max: number}): void {
-  const delta = range.max - range.min;
-  const t = (v: number) => v;//v-range.min)/delta;
   for(let y=0;y<height;y++) {
     for(let x=0;x<width;x++) {
       const buff_idx = (x + y*width);
       const idx = buff_idx* 4;
       if(buffer[buff_idx] >= 0) {
         const c = buffer[buff_idx];
-        const v = (1.0-t(c));
         out[idx+1] = out[idx+2] = c*255;
         out[idx] = out[idx+1];
         out[idx+3] = 255;
@@ -97,7 +94,7 @@ function addGroundPlane(device: Embree.Device ,scene: Embree.Scene) {
     0, embree.RTC_FORMAT_FLOAT3,
     4*4, 4);
   
-  const f32_vert = new Float32Array(embree.HEAP8.buffer, vertices, 16);
+  const f32_vert = embree.wrapTypedArray(vertices, 16, Float32Array);
   f32_vert.set([ 
     -10, -2, -10, 1, 
     -10, -2, 10, 1, 
@@ -109,7 +106,7 @@ function addGroundPlane(device: Embree.Device ,scene: Embree.Scene) {
     0,embree.RTC_FORMAT_UINT3,
     3 * 4, 2);
 
-  const u32_index = new Uint32Array(embree.HEAP8.buffer, triangles, 6);
+  const u32_index = embree.wrapTypedArray(triangles, 6, Uint32Array);
   u32_index.set([ 0, 1, 2, 1, 3, 2]);
 
   RTC.commitGeometry(mesh);
@@ -147,10 +144,10 @@ async function addRabbit(device: Embree.Device): Promise<Embree.Scene> {
 }
 
 const INSTANCE_COUNT = 8;
-const transformMatrix_ptr = embree._malloc(INSTANCE_COUNT * 4 * 16);
-const transformMatrix = [];
+const transformMatrix_ptr = embree.allocTypedArray(16 * INSTANCE_COUNT, Float32Array);
+const transformMatrix: Float32Array[] = [];
 for(let i=0;i<INSTANCE_COUNT;i++) {
-  transformMatrix[i] = new Float32Array(embree.HEAP8.buffer, transformMatrix_ptr + i*4 * 16, 16);
+  transformMatrix[i] = transformMatrix_ptr.subarray(i*16, (i+1)*16);
 }
 
 function createRabbitInstance(scene: Embree.Scene, rabbit: Embree.Scene, instance: number): Embree.Geometry {
@@ -159,34 +156,35 @@ function createRabbitInstance(scene: Embree.Scene, rabbit: Embree.Scene, instanc
   RTC.setGeometryTimeStepCount(g_instance0,1);
   RTC.attachGeometry(scene, g_instance0);
   RTC.releaseGeometry(g_instance0);
-  RTC.setGeometryTransform(g_instance0,0,embree.RTC_FORMAT_FLOAT4X4_COLUMN_MAJOR, transformMatrix_ptr + instance * 4 * 16);
+  RTC.setGeometryTransform(g_instance0,0,embree.RTC_FORMAT_FLOAT4X4_COLUMN_MAJOR, transformMatrix[instance].byteOffset);
   RTC.commitGeometry(g_instance0);
   return g_instance0;
 }
 
 const scene = RTC.newScene(device);
+{
+  addGroundPlane(device, scene);
+  const rabbitScene = await addRabbit(device);
 
-addGroundPlane(device, scene);
-const rabbitScene = await addRabbit(device);
-
-const rabbits: Embree.Geometry[] = [];
-let rabbitIndex = 0;
+  const rabbits: Embree.Geometry[] = [];
+  let rabbitIndex = 0;
 
 
-mat4.fromTranslation(transformMatrix[rabbitIndex], [0,.5,0])
-mat4.fromRotationTranslation(transformMatrix[1], quat.setAxisAngle(quat.create(), [0,1,0], Math.PI/3), [1,0,.5])
-mat4.fromRotationTranslation(transformMatrix[2], quat.setAxisAngle(quat.create(), [0,1,0], -Math.PI/3), [-1,0,-.5])
-mat4.fromRotationTranslation(transformMatrix[3], quat.setAxisAngle(quat.create(), [0,1,0], -Math.PI/6), [-1.5,0.5,.5])
-mat4.fromRotationTranslation(transformMatrix[4], quat.setAxisAngle(quat.create(), [0,1,0], Math.PI/6), [1.5,0.5,.5])
-mat4.fromRotationTranslation(transformMatrix[5], quat.setAxisAngle(quat.create(), [0,1,0], -Math.PI), [.25,0,1.15])
-mat4.fromRotationTranslation(transformMatrix[6], quat.setAxisAngle(quat.create(), [0,1,0], Math.PI/6), [-0.25,0.5,.5])
-mat4.fromRotationTranslation(transformMatrix[7], quat.setAxisAngle(quat.create(), [0,1,0], Math.PI), [1.5,0.5,.5])
+  mat4.fromTranslation(transformMatrix[rabbitIndex], [0,.5,0])
+  mat4.fromRotationTranslation(transformMatrix[1], quat.setAxisAngle(quat.create(), [0,1,0], Math.PI/3), [1,0,.5])
+  mat4.fromRotationTranslation(transformMatrix[2], quat.setAxisAngle(quat.create(), [0,1,0], -Math.PI/3), [-1,0,-.5])
+  mat4.fromRotationTranslation(transformMatrix[3], quat.setAxisAngle(quat.create(), [0,1,0], -Math.PI/6), [-1.5,0.5,.5])
+  mat4.fromRotationTranslation(transformMatrix[4], quat.setAxisAngle(quat.create(), [0,1,0], Math.PI/6), [1.5,0.5,.5])
+  mat4.fromRotationTranslation(transformMatrix[5], quat.setAxisAngle(quat.create(), [0,1,0], -Math.PI), [.25,0,1.15])
+  mat4.fromRotationTranslation(transformMatrix[6], quat.setAxisAngle(quat.create(), [0,1,0], Math.PI/6), [-0.25,0.5,.5])
+  mat4.fromRotationTranslation(transformMatrix[7], quat.setAxisAngle(quat.create(), [0,1,0], Math.PI), [1.5,0.5,.5])
 
-for(let i=0;i<INSTANCE_COUNT;i++) {
-  rabbits.push(createRabbitInstance(scene, rabbitScene, rabbitIndex++));
+  for(let i=0;i<INSTANCE_COUNT;i++) {
+    rabbits.push(createRabbitInstance(scene, rabbitScene, rabbitIndex++));
+  }
+
+  RTC.commitScene(scene);
 }
-
-RTC.commitScene(scene);
 
 interface Camera {
   pos: vec3,
@@ -205,13 +203,10 @@ const posXY = vec3.create();
 const posX = vec3.create()
 const posY = vec3.create()
 
-const SIZE = 1400;
+const SIZE = 1000;
 const WIDTH = SIZE;
 const HEIGHT = SIZE;
-const out_buf_size = WIDTH*HEIGHT*12;
-const out_buf_ptr = embree._malloc(out_buf_size);
-const out_buf = new Float32Array(embree.HEAP8.buffer, out_buf_ptr, WIDTH * HEIGHT*3);
-(out_buf as any).ptr = out_buf_ptr;
+const out_buf = embree.allocTypedArray(WIDTH * HEIGHT * 3, Float32Array);
 const out = new Float32Array(WIDTH * HEIGHT);
 
 const light_v3 = vec3.normalize(vec3.create(),[1,-1,-1]);
@@ -326,7 +321,7 @@ const MODE: number = 3;
       p0[0], p0[1],p0[2],
       d10[0],d10[1],d10[2],
       d20[0],d20[1],d20[2],
-      0, WIDTH, 0, HEIGHT, out_buf_ptr, 48, 12);
+      0, WIDTH, 0, HEIGHT, out_buf.byteOffset, 48, 12);
     });
     for(let i=0;i<out_buf.length;i+=3) {
       if(out_buf[i]<1e8) {
@@ -403,7 +398,7 @@ const MODE: number = 3;
       p0[0], p0[1],p0[2],
       d10[0],d10[1],d10[2],
       d20[0],d20[1],d20[2],
-      0, WIDTH, 0, HEIGHT, out_buf_ptr, 48, 12, _maskPtr);
+      0, WIDTH, 0, HEIGHT, out_buf.byteOffset, 48, 12, _maskPtr);
     });
     let out_i = 0;
     for(let i=0;i<out_buf.length;i+=12) {

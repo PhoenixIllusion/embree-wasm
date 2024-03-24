@@ -7,12 +7,18 @@ set(EMSCRIPTEN_ROOT $ENV{EMSDK}/upstream/emscripten CACHE STRING "Emscripten pat
 set(CMAKE_TOOLCHAIN_FILE ${EMSCRIPTEN_ROOT}/cmake/Modules/Platform/Emscripten.cmake)
 set(WEBIDL_BINDER_SCRIPT ${EMSCRIPTEN_ROOT}/tools/webidl_binder.py)
 set(OUTPUT_FOLDER ${CMAKE_CURRENT_SOURCE_DIR}/dist/)
+
 set(TYPING_D_TS ${OUTPUT_FOLDER}embree.d.ts)
+set(TYPING_D_TS_EXTRAS ${CMAKE_CURRENT_SOURCE_DIR}/_ts/embree.extras.d.ts)
+set(GLUE_EXTRAS ${CMAKE_CURRENT_SOURCE_DIR}/_ts/glue.extras.js)
+
 set(IDL_PART_DIR ${CMAKE_CURRENT_SOURCE_DIR}/idl/)
+set(EMBREE_IDL_H ${CMAKE_CURRENT_SOURCE_DIR}/embree_idl.h)
+
+# Script Files
 set(SCRIPT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/scripts/)
 set(GEN_NEW_IDL ${SCRIPT_DIR}/gen_idl_file.sh)
 set(GEN_NEW_HEADER ${SCRIPT_DIR}/gen_header_files.sh)
-set(EMBREE_IDL_H ${CMAKE_CURRENT_SOURCE_DIR}/embree_idl.h)
 
 # The configurations we support
 set(CMAKE_CONFIGURATION_TYPES "Debug;Release;Distribution")
@@ -21,6 +27,11 @@ FILE(GLOB IDL_PARTS ${CMAKE_CURRENT_SOURCE_DIR}/idl)
 
 set(EMBREE_IDL embree.idl)
 set(GEN_HEADER gen.h)
+set(EXTRA_HEADERS
+  ${CMAKE_CURRENT_SOURCE_DIR}/_h/classes.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/_h/extra.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/_h/function_ptrs.h
+)
 
 # Include Embree
 include(FetchContent)
@@ -31,7 +42,7 @@ FetchContent_Declare(embree
 )
 
 set(EMBREE_TUTORIALS OFF CACHE BOOL "" FORCE)
-set(EMBREE_TASKING_SYSTEM INTERNAL "" FORCE)
+set(EMBREE_TASKING_SYSTEM INTERNAL CACHE STRING "" FORCE)
 set(EMBREE_STATIC_LIB ON CACHE BOOL "" FORCE)
 set(FLAGS_SSE2 "-msse -msse2")
 
@@ -57,6 +68,7 @@ set(EMCC_ARGS
   -s WASM=1
   --no-entry 
   --post-js glue.js
+  --post-js ${GLUE_EXTRAS}
   -s MODULARIZE=1 
   -s EXPORT_ES6=1 
   -s NO_EXIT_RUNTIME=1 
@@ -111,8 +123,11 @@ add_custom_command(
 
 add_custom_command(
   OUTPUT ${TYPING_D_TS}
-  COMMAND npx webidl-dts-gen -e -d -i embree.idl -o ${TYPING_D_TS} -n Embree
-  DEPENDS ${EMBREE_IDL}
+  COMMAND npx --yes webidl-dts-gen -e -d -i embree.idl -o ${TYPING_D_TS} -n Embree
+  COMMAND sed -i "" -e "$ d" ${TYPING_D_TS}
+  COMMAND cat ${TYPING_D_TS_EXTRAS} >> ${TYPING_D_TS}
+  COMMAND echo "}" >> ${TYPING_D_TS}
+  DEPENDS ${EMBREE_IDL} ${TYPING_D_TS_EXTRAS}
   COMMENT "Generating Typescript Typing from IDL"
   VERBATIM)
 
@@ -127,7 +142,7 @@ add_custom_command(
 add_custom_command(
   OUTPUT glue.o
   COMMAND emcc glue.cpp ${EMCC_GLUE_ARGS} -o glue.o
-  DEPENDS glue.cpp ${EMBREE_IDL_H}
+  DEPENDS glue.cpp ${EMBREE_IDL_H} ${EXTRA_HEADERS}
   COMMENT "Building WebIDL bindings.o"
   VERBATIM)
 add_custom_target(Embree-Wasm-bindings ALL DEPENDS glue.js glue.o)
@@ -135,8 +150,8 @@ add_custom_target(Embree-Wasm-bindings ALL DEPENDS glue.js glue.o)
 #######################################
 add_custom_command(
   OUTPUT ${OUTPUT_FOLDER}embree.js ${OUTPUT_FOLDER}embree.wasm
-  COMMAND emcc glue.o ${EMBREE_STATIC_LIBS}  ${EMCC_ARGS} -o ${OUTPUT_FOLDER}embree.js
-  DEPENDS Embree-Wasm-bindings Embree-Wasm-generated embree ${EMBREE_LIBRARIES}
+  COMMAND emcc glue.o ${EMBREE_STATIC_LIBS} ${EMCC_ARGS} -o ${OUTPUT_FOLDER}embree.js
+  DEPENDS Embree-Wasm-bindings Embree-Wasm-generated embree ${EMBREE_LIBRARIES} ${GLUE_EXTRAS}
   COMMENT "Building Embree.js webassembly"
   VERBATIM)
 add_custom_target(Embree-wasm ALL DEPENDS ${OUTPUT_FOLDER}embree.js ${OUTPUT_FOLDER}embree.wasm)

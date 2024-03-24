@@ -42,29 +42,29 @@
     }
 
     // Function Pointer Accessors - Note: All Shared. Use UserData to distinguish if needing more than one
-    RTCCreateNodeFunction getRTCCreateNodeFunction() {
+    static  RTCCreateNodeFunction getRTCCreateNodeFunction() {
         return &__RTCCreateNodeFunction;
     }
-    RTCSetNodeChildrenFunction getRTCSetNodeChildrenFunction() {
+    static RTCSetNodeChildrenFunction getRTCSetNodeChildrenFunction() {
         return &__RTCSetNodeChildrenFunction;
     }
-    RTCSetNodeBoundsFunction getRTCSetNodeBoundsFunction() {
+    static RTCSetNodeBoundsFunction getRTCSetNodeBoundsFunction() {
         return &__RTCSetNodeBoundsFunction;
     }
-    RTCCreateLeafFunction getRTCCreateLeafFunction() {
+    static RTCCreateLeafFunction getRTCCreateLeafFunction() {
         return &__RTCCreateLeafFunction;
     }
-    RTCSplitPrimitiveFunction getRTCSplitPrimitiveFunction() {
+    static RTCSplitPrimitiveFunction getRTCSplitPrimitiveFunction() {
         return &__RTCSplitPrimitiveFunction;
     }
 
-    RTCFilterFunctionN getRTCFilterFunctionN() {
+    static RTCFilterFunctionN getRTCFilterFunctionN() {
         return &__RTCFilterFunctionN;
     }
-    RTCIntersectFunctionN getRTCIntersectFunctionN() {
+    static RTCIntersectFunctionN getRTCIntersectFunctionN() {
         return &__RTCIntersectFunctionN;
     }
-    RTCOccludedFunctionN getRTCOccludedFunctionN() {
+    static RTCOccludedFunctionN getRTCOccludedFunctionN() {
         return &__RTCOccludedFunctionN;
     }
 
