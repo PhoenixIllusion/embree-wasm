@@ -22,6 +22,9 @@ export class Vertex {
 
   get z() { return this.d[2]}
   set z(v: float) { this.d[2] = v;}
+
+  get r() { return this.d[3];}
+  set r(v: float) { this.d[3] = v;}
 }
 export function wrapArrayAsVertex( array: Float32Array) {
   const result: Vertex[] = [];
