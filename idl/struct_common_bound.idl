@@ -2,6 +2,7 @@
 
 /* Axis-aligned bounding box representation */
 interface RTCBounds {
+  void RTCBounds();
   attribute float lower_x;
   attribute float lower_y;
   attribute float lower_z;
@@ -14,6 +15,7 @@ interface RTCBounds {
 
 /* Linear axis-aligned bounding box representation */
 interface RTCLinearBounds {
+  void RTCLinearBounds();
   [Value] attribute RTCBounds bounds0;
   [Value] attribute RTCBounds bounds1;
 };

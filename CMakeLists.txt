@@ -77,7 +77,7 @@ set(EMCC_ARGS
   -s TOTAL_MEMORY=${TOTAL_MEMORY} 
   -s STACK_SIZE=${STACK_SIZE} 
   -s ALLOW_MEMORY_GROWTH=${ALLOW_MEMORY_GROWTH}
-  -mavx -msimd128 -std=c++17
+  -msse2 -msimd128 -std=c++17
   -sEXPORTED_FUNCTIONS=[_malloc,_free]
   -I ${CMAKE_CURRENT_SOURCE_DIR}
   -I ${EMBREE_INCLUDE}
@@ -102,7 +102,7 @@ set(EMCC_GLUE_ARGS
   -I ${EMBREE_INCLUDE}
   -include ${CMAKE_CURRENT_SOURCE_DIR}/embree_idl.h
   -Wall
-  -mavx -msimd128 -std=c++17)
+  -msse2 -msimd128 -std=c++17)
 
 
 #######################################

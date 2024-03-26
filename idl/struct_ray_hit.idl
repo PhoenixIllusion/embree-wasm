@@ -14,6 +14,9 @@ interface RTCHit {
 
   attribute unsigned long  primID; // primitive ID
   attribute unsigned long  geomID; // geometry ID
+
+  attribute unsigned long[] instID; //instance ID
+  attribute unsigned long[] instPrimID; //primitive ID
 };
 interface RTCHit4 {
   void RTCHit4();

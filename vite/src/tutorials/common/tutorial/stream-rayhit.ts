@@ -34,6 +34,8 @@ export class Hit {
   UV: Float32Array;
   geomID: Int32Array;
   primID: Int32Array;
+  instID: Int32Array;
+  instPrimID: Int32Array;
   constructor( embree: typeof Embree, ptr: number) {
     const buffer = embree.HEAP8.buffer;
     let i = 0;
@@ -41,6 +43,8 @@ export class Hit {
     this.UV = new Float32Array(buffer, ptr + i, 2); i += 8;
     this.primID = new Int32Array(buffer, ptr+i, 1); i += 4;
     this.geomID = new Int32Array(buffer, ptr+i, 1); i += 4;
+    this.instID = new Int32Array(buffer, ptr+i, 1); i += 4;
+    this.instPrimID = new Int32Array(buffer, ptr+i, 1); i += 4;
   }
 }
 

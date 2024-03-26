@@ -2,6 +2,9 @@
 interface VoidArray {};
 
 [NoDelete]
+interface SceneArray {};
+
+[NoDelete]
 interface FloatPtr {};
 
 [NoDelete]

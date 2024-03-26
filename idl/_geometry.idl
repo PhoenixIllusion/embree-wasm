@@ -92,7 +92,7 @@
   static void setGeometryInstancedScene(Geometry geometry, Scene scene);
 
   /* Sets the instanced scenes of an instance array geometry. */
-  //TODO: SceneArray: static void setGeometryInstancedScenes(Geometry geometry, RTCScene* scenes, unsigned long numScenes);
+  static void setGeometryInstancedScenes(Geometry geometry, SceneArray scenes, unsigned long numScenes);
 
   /* Sets the transformation of an instance for the specified time step. */
   static void setGeometryTransform(Geometry geometry, unsigned long timeStep, RTCFormat format, [Const] any xfm);

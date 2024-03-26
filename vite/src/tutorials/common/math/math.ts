@@ -40,3 +40,35 @@ export function clamp(v: float, lower: float, upper: float) {
 export function deg2rad(deg: float) {
   return  deg * (Math.PI / 180.0);
 }
+
+
+
+export const min = Math.min;
+export const max = Math.max;
+export const M_PI = Math.PI;
+export const sin = Math.sin;
+export const cos = Math.cos;
+export const ceil = Math.ceil;
+
+class RNG {
+  m = 0x80000000; // 2**31;
+  a = 1103515245;
+  c = 12345;
+  state: number;
+  // LCG using GCC's constants
+  constructor(seed: number) {
+    this.state = seed ? seed : Math.floor(Math.random() * (this.m - 1));
+  }
+  nextInt() {
+    this.state = (this.a * this.state + this.c) % this.m;
+    return this.state;
+  }
+  nextFloat() {
+    // returns in range [0,1]
+    return this.nextInt() / (this.m - 1);
+  }
+}
+const rng = new RNG(1515);
+export function RandomSampler_getFloat() {
+  return rng.nextFloat()
+}

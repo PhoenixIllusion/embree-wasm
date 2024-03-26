@@ -7,6 +7,7 @@
 
 using VoidArray = void *;
 using FloatPtr = float;
+using SceneArray = RTCScene;
 using Device = RTCDeviceTy;
 using Scene = RTCSceneTy;
 using Geometry = RTCGeometryTy;
