@@ -16,29 +16,30 @@
       return total_memory - dynamic_top + i.fordblks;
     }
 
-    static RTCRayHit * allocRTCRayHit() {
-      return new(std::align_val_t{16}) RTCRayHit();
-    }
     static size_t sizeOfRTCRayHit() {
       return sizeof(RTCRayHit);
-    }
-
-    static RTCRayHit4 * allocRTCRayHit4() {
-      return new(std::align_val_t{16}) RTCRayHit4();
     }
     static size_t sizeOfRTCRayHit4() {
       return sizeof(RTCRayHit4);
     }
-
-    static RTCRayHit8 * allocRTCRayHit8() {
-      return new(std::align_val_t{32}) RTCRayHit8();
-    }
     static size_t sizeOfRTCRayHit8() {
       return sizeof(RTCRayHit8);
     }
+    static size_t sizeOfRTCRayHit16() {
+      return sizeof(RTCRayHit16);
+    }
 
-    static int * allocRTCRayMask(size_t count) {
-      return (int *)memalign(32, count * 4);
+    static size_t sizeOfRTCRay() {
+      return sizeof(RTCRay);
+    }
+    static size_t sizeOfRTCRay4() {
+      return sizeof(RTCRay4);
+    }
+    static size_t sizeOfRTCRay8() {
+      return sizeof(RTCRay8);
+    }
+    static size_t sizeOfRTCRay16() {
+      return sizeof(RTCRay16);
     }
 
     // Function Pointer Accessors - Note: All Shared. Use UserData to distinguish if needing more than one
@@ -162,3 +163,16 @@
           }
         }
     }
+
+      static void intersect1M(RTCScene scene, void * _rayhit, unsigned short M, struct RTCIntersectArguments* args RTC_OPTIONAL_ARGUMENT) {
+        struct RTCRayHit** rayhit = (struct RTCRayHit**)_rayhit;
+        for(int i = 0; i < M; i++) {
+          rtcIntersect1(scene, rayhit[i], args);
+        }
+      }
+      static void occluded1M(RTCScene scene, void* _ray, unsigned short M, struct RTCOccludedArguments* args RTC_OPTIONAL_ARGUMENT) {
+        struct RTCRay** ray = (struct RTCRay**)_ray;
+        for(int i = 0; i < M; i++) {
+          rtcOccluded1(scene, ray[i], args);
+        }
+      }

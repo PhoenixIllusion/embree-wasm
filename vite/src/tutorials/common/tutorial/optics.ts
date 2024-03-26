@@ -1,3 +1,10 @@
+/*
+Based on
+https://github.com/embree/embree/blob/master/tutorials/common/tutorial/optics.h
+FullLink
+https://github.com/embree/embree/blob/0c236df6f31a8e9c8a48803dada333e9ea0029a6/tutorials/common/tutorial/optics.h
+*/
+
 import { vec3 } from "gl-matrix";
 import { float } from "../types";
 import { Sample3f, make_Sample3f } from "../math/sampling";

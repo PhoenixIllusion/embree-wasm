@@ -1,4 +1,11 @@
-import { mat4, vec3 } from "gl-matrix";
+/*
+Based on
+https://github.com/embree/embree/blob/master/tutorials/common/tutorial/camera.h
+FullLink
+https://github.com/embree/embree/blob/0c236df6f31a8e9c8a48803dada333e9ea0029a6/tutorials/common/tutorial/camera.h
+*/
+
+import { vec3 } from "gl-matrix";
 import { float, uint } from "../types";
 import { AffineSpace3f } from "../math/affinespace";
 import { TMP_V3, deg2rad } from "../math/math";

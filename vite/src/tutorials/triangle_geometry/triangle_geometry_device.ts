@@ -1,10 +1,20 @@
-import { vec3 } from "gl-matrix";
+/*
+Based on 
+https://github.com/embree/embree/tree/master/tutorials/triangle_geometry
+FullLink
+https://github.com/embree/embree/blob/0c236df6f31a8e9c8a48803dada333e9ea0029a6/tutorials/triangle_geometry/triangle_geometry_device.cpp
+*/
+
+import { vec3, vec4 } from "gl-matrix";
 import { Embree, RTC, embree } from "../common/embree";
 import { ISPCCamera } from "../common/tutorial/camera";
 import { SIZE_OF_TRIANGLE, SIZE_OF_VERTEX, Vertex, wrapArrayAsTriangle, wrapArrayAsVertex } from "../common/tutorial/geometry";
 import { TutorialApplication } from "../common/tutorial/tutorial";
 import { clamp } from "../common/math/math";
 import { float, uint } from "../common/types";
+
+import THIS_URL from './triangle_geometry_device.ts?url';
+import { StreamingData, setupRayStreamData } from "../common/tutorial/stream-rayhit";
 
 
 const USE_VERTEX_COLOR = false;
@@ -26,13 +36,12 @@ interface TutorialData {
   vertex_colors: [float,float,float][]
 }
 
-class TriangleGeometryTutorial extends TutorialApplication {
+export default class TriangleGeometryTutorial extends TutorialApplication {
 
   private g_scene!: Embree.Scene;
 
   private rayHit!: Embree.RTCRayHit;
   private shadow!: Embree.RTCRay;
-  private shadowRH!: Embree.RTCRayHit;
 
   private interpolate!: Float32Array;
 
@@ -134,10 +143,7 @@ class TriangleGeometryTutorial extends TutorialApplication {
   }
 
   device_init(): void {
-    this.rayHit = RTC.allocRTCRayHit();
-    this.shadowRH = RTC.allocRTCRayHit();
-    this.shadow = this.shadowRH.ray;
-
+    this.g_device = RTC.newDevice('verbose=0,threads=1,tessellation_cache_size=0');
     this.interpolate = embree.allocTypedArray(4, Float32Array);
 
     /* create scene */
@@ -155,7 +161,11 @@ class TriangleGeometryTutorial extends TutorialApplication {
     
   }
 
-  renderPixelStandard(x: number, y: number, pixels: Uint8ClampedArray, width: number, height: number, time: number, camera: ISPCCamera): void {
+  renderPixelStandard(outPixel: vec4, x: number, y: number, width: number, height: number, time: number, camera: ISPCCamera): vec4 {
+    if(!this.rayHit) {
+      this.rayHit = embree.allocRTCRayHit();
+      this.shadow = new embree.RTCRay();
+    }
     const rayHit = this.rayHit;
     const ray = rayHit.ray;
     const hit = rayHit.hit;
@@ -169,7 +179,6 @@ class TriangleGeometryTutorial extends TutorialApplication {
     [rayHit.ray.dir_x, rayHit.ray.dir_y,rayHit.ray.dir_z] = v.dir;
     RTC.intersect1(this.g_scene, rayHit);
 
-
     vec3.set(v.color, 0, 0, 0);
     if(hit.geomID != -1) {
       if(USE_VERTEX_COLOR && hit.geomID > 0) { // Floor has no colors, so can't sample
@@ -178,7 +187,6 @@ class TriangleGeometryTutorial extends TutorialApplication {
       } else {
         vec3.set(v.diffuse, ... this.data.face_colors[hit.primID])
       }
-
 
       vec3.set(v.Ng, hit.Ng_x, hit.Ng_y, hit.Ng_z);
       vec3.normalize(v.Ng, v.Ng);
@@ -201,28 +209,124 @@ class TriangleGeometryTutorial extends TutorialApplication {
       }
     }
 
-    const pxy = (x + y*width) * 4;
-    pixels[pxy] = 255 * clamp(v.color[0], 0, 1)
-    pixels[pxy+1] = 255 * clamp(v.color[1], 0, 1)
-    pixels[pxy+2] = 255 * clamp(v.color[2], 0, 1)
-    pixels[pxy+3] = 255
-    
+    const r = 255 * clamp(v.color[0], 0, 1)
+    const g = 255 * clamp(v.color[1], 0, 1)
+    const b = 255 * clamp(v.color[2], 0, 1)
+    const a = 255
+    return vec4.set(outPixel, r,g,b,a);
   }
+
+  private streamData!: StreamingData;
+
+  renderTileStandard(taskIndex: uint,
+    _threadIndex: uint,
+    pixels: Uint8ClampedArray,
+    width: uint,
+    height: uint,
+    time: float,
+    camera: ISPCCamera,
+    numTilesX: uint,
+    _numTilesY: uint, dX: number = 0, dY: number = 0, stride: number = 0) {
+      if(this.streamData == undefined) {
+        this.streamData = setupRayStreamData(embree, camera, this.TILE_SIZE_X, this.TILE_SIZE_Y)
+      }
+
+      const stream = this.streamData;
+      const SHADOW_ENABLED = true;
+
+      const tileY = Math.floor(taskIndex / numTilesX);
+      const tileX = taskIndex - tileY * numTilesX;
+      const x0 = tileX * this.TILE_SIZE_X;
+      const x1 = Math.min(x0 + this.TILE_SIZE_X, width);
+      const y0 = tileY * this.TILE_SIZE_Y;
+      const y1 = Math.min(y0 + this.TILE_SIZE_Y, height);
+      stride = stride || width;
+      
+      vec3.normalize(v.lightDir, vec3.set(v.lightDir, -1, -1, -1));
+
+      let i = 0;
+      for (let y=y0; y<y1; y++) for (let  x=x0; x<x1; x++)
+      {
+        embree.HEAPU8.set(stream.rayStreamCacheData, stream.rayStreamPtr[i]);
+        camera.setRayDir(stream.rayStream[i++].ray.dir, x, y);
+      }
+      const STREAM_COUNT = stream.rayStreamPtr.length;
+      RTC.intersect1M(this.g_scene, stream.rayStreamPtr.byteOffset, STREAM_COUNT, stream.rayStreamContext);
+      let shadowCount = 0;
+      for(let i=0;i<STREAM_COUNT;i++) {
+        const color = stream.rayColorResults[i];
+        vec3.set(color, 0, 0, 0);
+        const hit = stream.rayStream[i].hit;
+        if(hit.geomID[0] != -1 ) {
+          const ray = stream.rayStream[i].ray;
+          const diffuse = stream.rayDiffuseResults[i];
+          if(USE_VERTEX_COLOR && hit.geomID[0] > 0) { // Floor has no colors, so can't sample
+            RTC.interpolate0(RTC.getGeometry(this.g_scene, hit.geomID[0]), hit.primID[0], hit.UV[0], hit.UV[1], embree.RTC_BUFFER_TYPE_VERTEX_ATTRIBUTE, 0, this.interpolate.byteOffset, 3)
+            vec3.copy(diffuse, this.interpolate);
+          } else {
+            vec3.set(diffuse, ... this.data.face_colors[hit.primID[0]])
+          }
+          vec3.scaleAndAdd(color, color, diffuse, 0.5);
+
+
+          
+          if(SHADOW_ENABLED) {
+            vec3.normalize(hit.Ng, hit.Ng);
+
+            const shadowIndex = shadowCount++;
+            stream.shadowIndex[shadowIndex] = i;
+            const shadow = stream.shadowStream[shadowIndex];
   
+            embree.HEAPU8.set(stream.shadowCache, stream.shadowStreamPtr[shadowIndex]);
+  
+            vec3.scaleAndAdd(shadow.orig, camera.xfm.p, ray.dir, ray.tfar[0]);
+            vec3.negate(shadow.dir, v.lightDir);
+            shadow.tnear[0] = 0.001;
+          } else {
+            const r = 255 * clamp(color[0], 0, 1)
+            const g = 255 * clamp(color[1], 0, 1)
+            const b = 255 * clamp(color[2], 0, 1)
+            vec3.set(color, r, g, b);
+          }
+        }
+      }
+      if(SHADOW_ENABLED && shadowCount > 0) {
+        RTC.occluded1M(this.g_scene, stream.shadowStreamPtr.byteOffset, shadowCount, stream.shadowStreamContext);
+        for(let i=0;i<shadowCount;i++) {
+          const rayIndex = stream.shadowIndex[i];
+          const shadow = stream.shadowStream[i];
+          const color = stream.rayColorResults[rayIndex];
+          const diffuse = stream.rayDiffuseResults[rayIndex];
+          if(shadow.tfar[0] >= 0) {
+            const ray = stream.rayStream[rayIndex];
+            const d = clamp(-vec3.dot(v.lightDir, ray.hit.Ng), 0, 1);
+            vec3.scaleAndAdd(color, color, diffuse, d);
+          }
+          const r = 255 * clamp(color[0], 0, 1)
+          const g = 255 * clamp(color[1], 0, 1)
+          const b = 255 * clamp(color[2], 0, 1)
+          vec3.set(color, r, g, b);
+        }
+      }
+
+      i = 0;
+      for (let y=y0; y<y1; y++) for (let  x=x0; x<x1; x++)
+      {
+        const index = ((x-dX) + (y-dY) * stride)*4;
+        pixels.set(stream.rayColorResults[i++], index);
+      }
+    }
 }
 
 
-
-const SIZE = 800;
+const SIZE = 1400;
 const WIDTH = SIZE;
 const HEIGHT = SIZE;
 
+export function run(START_TIME: number) {
+  TutorialApplication.runTutorial(START_TIME, TriangleGeometryTutorial, 'canvas', WIDTH, HEIGHT);
+}
 
-const canvas: HTMLCanvasElement = document.querySelector('#canvas')!;
-canvas.width = WIDTH;
-canvas.height = HEIGHT;
-canvas.style.width = Math.max(WIDTH*0.9,800)+'px'
-canvas.style.height = Math.max(HEIGHT*0.9,800)+'px'
-
-const tutorial = new TriangleGeometryTutorial();
-tutorial.runWithCanvas(canvas, 0);
+export async function runWithWorker(START_TIME: number) {
+  return TutorialApplication.runTutorialWithWorkers(START_TIME, TriangleGeometryTutorial, THIS_URL, 'canvas', WIDTH, HEIGHT, 7);
+}

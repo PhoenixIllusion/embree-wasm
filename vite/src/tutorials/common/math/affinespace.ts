@@ -1,3 +1,11 @@
+/*
+Based on
+https://github.com/embree/embree/blob/master/common/math/affinespace.h
+FullLink
+https://github.com/embree/embree/blob/0c236df6f31a8e9c8a48803dada333e9ea0029a6/common/math/affinespace.h
+*/
+
+
 import { vec3 } from "gl-matrix";
 import { LinearSpace3 } from "./linearspace";
 import { TMP_V3, madd_vec3 } from "./math";

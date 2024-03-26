@@ -16,6 +16,9 @@ export default defineConfig({
       }
     }
   },
+  worker: {
+    format: 'es'
+  },
   base: './',
   server: {
     host: 'localhost',

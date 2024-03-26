@@ -3,7 +3,13 @@
 <head>
   <title>Embree</title>
   <meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0" />
-<script type="module" src="../src/tutorials/curve_geometry/curve_geometry_device.ts"></script>
+<script type="module">
+  const START_TIME = performance.now();
+  const tutorial = await import('../src/tutorials/curve_geometry/curve_geometry_device.ts');
+  
+  //tutorial.run(START_TIME);
+  tutorial.runWithWorker(START_TIME);
+</script>
 <style>
   canvas { 
       image-rendering: pixelated;
