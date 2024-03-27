@@ -1,7 +1,7 @@
 
 function wrapTypedArray(ptr, len, Class) {
   const ret = new Class(Module['HEAP8'].buffer, ptr, len);
-  ret.ptr = len;
+  ret.ptr = ptr;
   return ret;
 }
 function allocTypedArray(len, Class) {

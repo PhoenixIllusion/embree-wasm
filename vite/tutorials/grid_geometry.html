@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Embree: Grid Geometry</title>
+  <meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0" />
+<script type="module">
+  const START_TIME = performance.now();
+  const RUN_MODE = 'multi-thread-stream';
+
+  const BASE_URL = '../src/tutorials/grid_geometry/grid_geometry_'
+
+  switch(RUN_MODE) {
+    case 'standard': {
+      const tutorial = await import(BASE_URL+'device.ts');
+      tutorial.run(START_TIME);
+      }break;
+    case 'multi-thread-standard': {
+      const tutorial = await import(BASE_URL+'device.ts');
+      tutorial.runWithWorker(START_TIME);
+      }break;
+    case 'stream': {
+      const tutorial = await import(BASE_URL+'stream.ts');
+      tutorial.run(START_TIME);
+      }break;
+    case 'multi-thread-stream': {
+      const tutorial = await import(BASE_URL+'stream.ts');
+      tutorial.runWithWorker(START_TIME);
+      }break;
+  }
+</script>
+<style>
+  canvas { 
+      image-rendering: pixelated;
+  }
+</style>
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+
+  </div>
+  <br />
+  <div id="fps">  </div>
+</body>
+</html>

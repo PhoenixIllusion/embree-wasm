@@ -58,17 +58,27 @@ set(EMBREE_STATIC_LIBS
   ${embree_BINARY_DIR}/libtasking.a
 )
 
-set(TOTAL_MEMORY 32MB CACHE STRING "Total Memory")
-set(STACK_SIZE 1MB CACHE STRING "Stack Size")
+set(TOTAL_MEMORY 72MB CACHE STRING "Total Memory" FORCE)
+set(STACK_SIZE 1MB CACHE STRING "Stack Size" FORCE)
 
 # Enable for resizable heap, with some amount of slowness
-set(ALLOW_MEMORY_GROWTH 0 CACHE STRING "Allow Memory Growth")
+set(ALLOW_MEMORY_GROWTH 0 CACHE STRING "Allow Memory Growth" FORCE)
+
+set(ENABLE_MULTI_THREADING 1 CACHE BOOL "Allow Multithreading" FORCE)
+
+# Enable multi threading
+if (ENABLE_MULTI_THREADING)
+	set(MULTI_THREADED_FLAG 
+		-pthread 
+		-s SHARED_MEMORY)
+endif()
 
 set(EMCC_ARGS
   -s WASM=1
   --no-entry 
   --post-js glue.js
   --post-js ${GLUE_EXTRAS}
+  ${MULTI_THREADED_FLAG}
   -s MODULARIZE=1 
   -s EXPORT_ES6=1 
   -s NO_EXIT_RUNTIME=1 
@@ -99,6 +109,7 @@ endif()
 set(EMCC_GLUE_ARGS
   -c
   -I .
+  ${MULTI_THREADED_FLAG}
   -I ${EMBREE_INCLUDE}
   -include ${CMAKE_CURRENT_SOURCE_DIR}/embree_idl.h
   -Wall

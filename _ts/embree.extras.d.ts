@@ -9,7 +9,6 @@
   function wrapTypedArray<C extends TypedArrayConstructor & {prototype: ArrayBufferLike}, P extends C['prototype']>(ptr: number, len: number, Class: C): P;
   function allocTypedArray<C extends TypedArrayConstructor & {prototype: ArrayBufferLike}, P extends C['prototype']>(size: number, Class: C): P;
   function copyTypedArray<C extends TypedArrayConstructor & {prototype: ArrayBufferLike}, P extends C['prototype']>(arr: ArrayLike<number>, Class: C): P;
-  function wrapAlignedTypedArray<C extends TypedArrayConstructor & {prototype: ArrayBufferLike}, P extends C['prototype']>(ptr: number, len: number, Class: C): P;
   function allocAlignedTypedArray<C extends TypedArrayConstructor & {prototype: ArrayBufferLike}, P extends C['prototype']>(size: number, align: number, Class: C): P;
   function copyAlignedTypedArray<C extends TypedArrayConstructor & {prototype: ArrayBufferLike}, P extends C['prototype']>(arr: ArrayLike<number>, align: number, Class: C): P;
   

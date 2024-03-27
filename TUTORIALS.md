@@ -28,3 +28,13 @@ Parts of the AffineSpace3f have been ported to the tutorial code, as have parts 
 Forest requires a heavy amount of memory.
 32MB should work for Complexity 0 (250 tree squares)
 Forest Complexity 1 requires about 48MB heap. Complexity 2 requires about 96MB heap.
+
+
+#### Grid Geometry
+![Grid Geometry](doc/tutorial-grid-geometry.jpg)
+![Grid Geometry - alternate](doc/tutorial-grid-geometry-alt.jpg)
+
+Requires a mulit-threading enabled build along with a tesselation_cache of at least 1 and ~62MB of memory.
+Multi-threading is not used for the BVH builder, but is needed for tesselation, since it will wait for a secondary thread to tesselate regardless of device configuration. This results in a lockkup on single-thread compiled libraries.
+
+The Alternate render is a bug where I had the wrong displacement sampling UV values used. 

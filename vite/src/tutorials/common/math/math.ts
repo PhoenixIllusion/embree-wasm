@@ -49,6 +49,7 @@ export const M_PI = Math.PI;
 export const sin = Math.sin;
 export const cos = Math.cos;
 export const ceil = Math.ceil;
+export const floor = Math.floor;
 
 class RNG {
   m = 0x80000000; // 2**31;

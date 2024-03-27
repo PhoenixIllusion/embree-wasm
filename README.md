@@ -39,11 +39,22 @@ If compressing the library, most browsers should support using decompression-str
 https://developer.mozilla.org/en-US/docs/Web/API/Compression_Streams_API
 https://developer.mozilla.org/en-US/docs/WebAssembly/JavaScript_interface/instantiateStreaming_static
 
-### Memory Warning
-By default, the `tessellation_cach_size` for the project will cause Embree4 to by default attempt to allocate over 100MB of RAM. You can keep this as-is and enable a higher TOTAL_MEMORY, or when requesting a device send the config `tessellation_cache_size=0`.
-When loading a larger model (Standford Bunny causes this issue), you will need a high Stack Size (already compiled as is) during the accelerated BVH construction to avoid running the stack out and crashing in the middle of a parallel-for with no error other than 'memory access'. The emscripten stack default was 64k, but the CMake existing build uses a 1MB stack, which alleviated my personal issues, but may be excess for what you require.
+### Multi Threading
 
-With my initial tests of one or two complex models, I did not need more than 6-8MB of RAM, and the default 16MB was more than enough. Most RAM I have needed was purely for storing RayCast results. This can be reduced in the WASM side by implementing tiling and copying off to a shared-array or other location, should you wish to not keep it controlled in the WASM layer.
+For in-library multi-threading, this is only used for BVH building (scene/commits) and not for the ray-tracing. This means that many of the tutorials will work without multi-threading being enabled during the compile, but there are some exceptions.
+
+Anything using tesselation-cache (Grid Geometry Tutorial) during `RTC.interpolate1` will freeze if it requires tesselation cache and multi-threading is not enabled.
+
+### Memory Warning
+By default, the `tessellation_cach_size` for the project will cause Embree4 to by default attempt to allocate over 100MB of RAM. You can keep this as-is and enable a higher TOTAL_MEMORY, or when requesting a device send the config `tessellation_cache_size=0`. You can also compile with ALLOW_MEMORY_GROWTH to allow growth to whatever is needed.
+
+Some tutorials may require Tesselation, in which case they will assert and fail if the cache size is below required. The `Grid Geometry` tutorial requires at least a tesselation cache size of 1.
+
+When loading a larger model (Standford Bunny causes this issue), you will need a high `STACK_SIZE` (already compiled as is) during the accelerated BVH construction to avoid running the stack out and crashing in the middle of a parallel-for with no error other than 'memory access'. The emscripten stack default was 64k, but the CMake existing build uses a 1MB stack, which alleviated my personal issues, but may be excess for what you require.
+
+With my initial tests of one or two complex models, I did not need more than 6-8MB of RAM, and the default 16MB was more than enough. Most RAM I have needed was purely for storing RayCast results. This can be reduced in the WASM side by implementing tiling and copying off to a shared-array or other location, should you wish to not keep it controlled in the WASM layer. Tutorials may require a higher amount in general. 75-96MB can handle most tutorials.
+
+Some of the higher instance counts, like Forest, may require higher memory limits or compiling with Memory Resize enabled. Forest can handle ~500,000 instances at 96MB.
 
 Custom methods have been added for:
 1. **TotalMemory/FreeMemory** - Derived from emscripten's heap tests. Utility usage for checking HEAP space
@@ -55,7 +66,7 @@ Custom methods have been added for:
 	1) **Wrap** - (pointer, N length, type) - will take a pointer (such as from C) and wrap it in a typed array of N length. The library has no knowledge of the actual when given an arbitrary poitner length, so it must be provided.
 	2) **Alloc** ( N length, type) - will allocate an array of N items. (2, F32) will allocate 8 bytes. This will then call wrap using the N length.
 	3) **Copy** ( array-like, type)- will take an existing array and type, then perform alloc, wrap, and set the contents of the array. 
-7. **alloc/wrap/copy Aligned Type Array** This is the same as above, but uses memalign due to how many internal methods require specific alignment 
+7. **alloc/copy Aligned Type Array** This is the same as above, but uses memalign due to how many internal methods require specific alignment. Wrap does not apply, as you cannot take a non-aligned pointer and wrap it as aligned. The pointer can not change.
 
 ### Tutorial
 
