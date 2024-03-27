@@ -46,28 +46,28 @@ export default class CurveGeometryTutorial extends TutorialApplication {
   private hair_vertex_colors!: Float32Array;
 
   constructor() {
-    super('CurveGeometryTutorial',[],50,50);
+    super('CurveGeometryTutorial', [], 50, 50);
     vec3.set(this.camera.from, -0.1188741848, 6.87527132, 7.228342533);
     vec3.set(this.camera.to, -0.1268435568, -1.961063862, -0.5809717178);
   }
 
-  addCurve (scene: Embree.Scene, gtype: Embree.RTCGeometryType, pos: vec4 ) {
+  addCurve(scene: Embree.Scene, gtype: Embree.RTCGeometryType, pos: vec4) {
     const geom = RTC.newGeometry(this.g_device, gtype);
-    RTC.setGeometryVertexAttributeCount(geom,1);
+    RTC.setGeometryVertexAttributeCount(geom, 1);
 
-    if(gtype == embree.RTC_GEOMETRY_TYPE_CONE_LINEAR_CURVE || gtype == embree.RTC_GEOMETRY_TYPE_ROUND_LINEAR_CURVE || gtype == embree.RTC_GEOMETRY_TYPE_CONE_LINEAR_CURVE) {
-      RTC.setSharedGeometryBuffer(geom, embree.RTC_BUFFER_TYPE_INDEX, 0, embree.RTC_FORMAT_UINT,   this.hair_indices_linear.byteOffset,0, 4, NUM_CURVES);
+    if (gtype == embree.RTC_GEOMETRY_TYPE_CONE_LINEAR_CURVE || gtype == embree.RTC_GEOMETRY_TYPE_ROUND_LINEAR_CURVE || gtype == embree.RTC_GEOMETRY_TYPE_CONE_LINEAR_CURVE) {
+      RTC.setSharedGeometryBuffer(geom, embree.RTC_BUFFER_TYPE_INDEX, 0, embree.RTC_FORMAT_UINT, this.hair_indices_linear.byteOffset, 0, 4, NUM_CURVES);
     } else {
-      RTC.setSharedGeometryBuffer(geom, embree.RTC_BUFFER_TYPE_INDEX, 0, embree.RTC_FORMAT_UINT,   this.hair_indices.byteOffset,       0, 4, NUM_CURVES);
+      RTC.setSharedGeometryBuffer(geom, embree.RTC_BUFFER_TYPE_INDEX, 0, embree.RTC_FORMAT_UINT, this.hair_indices.byteOffset, 0, 4, NUM_CURVES);
     }
     const verts_ptr = RTC.setNewGeometryBuffer(geom, embree.RTC_BUFFER_TYPE_VERTEX, 0, embree.RTC_FORMAT_FLOAT4, 16, NUM_VERTICES);
     const verts = embree.wrapTypedArray(verts_ptr, NUM_VERTICES * 4, Float32Array);
-    for(let i=0; i< NUM_VERTICES;i++) {
-      vec4.add(verts.subarray(i*4,(i+1)*4), pos, static_hair_vertices[i]);
+    for (let i = 0; i < NUM_VERTICES; i++) {
+      vec4.add(verts.subarray(i * 4, (i + 1) * 4), pos, static_hair_vertices[i]);
     }
     if (gtype == embree.RTC_GEOMETRY_TYPE_NORMAL_ORIENTED_BEZIER_CURVE ||
-        gtype == embree.RTC_GEOMETRY_TYPE_NORMAL_ORIENTED_BSPLINE_CURVE ||
-        gtype == embree.RTC_GEOMETRY_TYPE_NORMAL_ORIENTED_CATMULL_ROM_CURVE) {
+      gtype == embree.RTC_GEOMETRY_TYPE_NORMAL_ORIENTED_BSPLINE_CURVE ||
+      gtype == embree.RTC_GEOMETRY_TYPE_NORMAL_ORIENTED_CATMULL_ROM_CURVE) {
       RTC.setSharedGeometryBuffer(geom, embree.RTC_BUFFER_TYPE_NORMAL, 0, embree.RTC_FORMAT_FLOAT3, this.hair_normals.byteOffset, 0, 16, NUM_VERTICES);
     }
     if (gtype == embree.RTC_GEOMETRY_TYPE_ROUND_LINEAR_CURVE || gtype == embree.RTC_GEOMETRY_TYPE_CONE_LINEAR_CURVE) {
@@ -76,13 +76,12 @@ export default class CurveGeometryTutorial extends TutorialApplication {
 
     RTC.setSharedGeometryBuffer(geom, embree.RTC_BUFFER_TYPE_VERTEX_ATTRIBUTE, 0, embree.RTC_FORMAT_FLOAT3, this.hair_vertex_colors.byteOffset, 0, 16, NUM_VERTICES);
     RTC.commitGeometry(geom);
-    const geomID = RTC.attachGeometry(scene,geom);
+    const geomID = RTC.attachGeometry(scene, geom);
     RTC.releaseGeometry(geom);
     return geomID;
   }
 
-  addGroundPlane (scene_i: Embree.Scene)
-  {
+  addGroundPlane(scene_i: Embree.Scene) {
     /* create a triangulated plane with 2 triangles and 4 vertices */
     const geom = RTC.newGeometry(this.g_device, embree.RTC_GEOMETRY_TYPE_TRIANGLE);
 
@@ -101,7 +100,7 @@ export default class CurveGeometryTutorial extends TutorialApplication {
     triangles[1].v0 = 1; triangles[1].v1 = 3; triangles[1].v2 = 2;
 
     RTC.commitGeometry(geom);
-    const geomID = RTC.attachGeometry(scene_i,geom);
+    const geomID = RTC.attachGeometry(scene_i, geom);
     RTC.releaseGeometry(geom);
     return geomID;
   }
@@ -118,91 +117,88 @@ export default class CurveGeometryTutorial extends TutorialApplication {
     this.hair_flags_linear = embree.allocTypedArray(static_hair_flags_linear.length, Uint8Array);
     this.hair_flags_linear.set(static_hair_flags_linear);
 
-    const normals = static_hair_normals.map(([x,y,z])=> ([x,y,z,1]) ).flat();
+    const normals = static_hair_normals.map(([x, y, z]) => ([x, y, z, 1])).flat();
     this.hair_normals = embree.copyAlignedTypedArray(normals, 4, Float32Array);
 
-    const colors = static_hair_vertex_colors.map(([x,y,z])=> ([x,y,z,1]) ).flat();
+    const colors = static_hair_vertex_colors.map(([x, y, z]) => ([x, y, z, 1])).flat();
     this.hair_vertex_colors = embree.copyAlignedTypedArray(colors, 4, Float32Array);
 
     /* create scene */
     const g_scene = this.g_scene = RTC.newScene(this.g_device);
-    
+
     /* add ground plane */
     this.addGroundPlane(this.g_scene);
 
-      /* add curves */
-      this.addCurve(g_scene, embree.RTC_GEOMETRY_TYPE_CONE_LINEAR_CURVE, [-5.5, 0.0, 3., 0.0]);
-      this.addCurve(g_scene, embree.RTC_GEOMETRY_TYPE_ROUND_LINEAR_CURVE, [-2.5, 0.0, 3., 0.0]);
-      this.addCurve(g_scene, embree.RTC_GEOMETRY_TYPE_FLAT_BSPLINE_CURVE, [0.5, 0.0, 3., 0.0]);
-      this.addCurve(g_scene, embree.RTC_GEOMETRY_TYPE_ROUND_BSPLINE_CURVE, [3.5, 0.0, 3., 0.0]);
-      this.addCurve(g_scene, embree.RTC_GEOMETRY_TYPE_NORMAL_ORIENTED_BSPLINE_CURVE, [+6.0, 0.0, 3., 0.0]);
+    /* add curves */
+    this.addCurve(g_scene, embree.RTC_GEOMETRY_TYPE_CONE_LINEAR_CURVE, [-5.5, 0.0, 3., 0.0]);
+    this.addCurve(g_scene, embree.RTC_GEOMETRY_TYPE_ROUND_LINEAR_CURVE, [-2.5, 0.0, 3., 0.0]);
+    this.addCurve(g_scene, embree.RTC_GEOMETRY_TYPE_FLAT_BSPLINE_CURVE, [0.5, 0.0, 3., 0.0]);
+    this.addCurve(g_scene, embree.RTC_GEOMETRY_TYPE_ROUND_BSPLINE_CURVE, [3.5, 0.0, 3., 0.0]);
+    this.addCurve(g_scene, embree.RTC_GEOMETRY_TYPE_NORMAL_ORIENTED_BSPLINE_CURVE, [+6.0, 0.0, 3., 0.0]);
 
-      this.addCurve(g_scene, embree.RTC_GEOMETRY_TYPE_FLAT_LINEAR_CURVE, [-4.5, 0.0, -2., 0.0]);
-      this.addCurve(g_scene, embree.RTC_GEOMETRY_TYPE_FLAT_CATMULL_ROM_CURVE, [-1.5, 0.0, -2., 0.0]);
-      this.addCurve(g_scene, embree.RTC_GEOMETRY_TYPE_ROUND_CATMULL_ROM_CURVE, [1.5, 0.0, -2., 0.0]);
-      this.addCurve(g_scene, embree.RTC_GEOMETRY_TYPE_NORMAL_ORIENTED_CATMULL_ROM_CURVE, [+4.5, 0.0, -2., 0.0]);
+    this.addCurve(g_scene, embree.RTC_GEOMETRY_TYPE_FLAT_LINEAR_CURVE, [-4.5, 0.0, -2., 0.0]);
+    this.addCurve(g_scene, embree.RTC_GEOMETRY_TYPE_FLAT_CATMULL_ROM_CURVE, [-1.5, 0.0, -2., 0.0]);
+    this.addCurve(g_scene, embree.RTC_GEOMETRY_TYPE_ROUND_CATMULL_ROM_CURVE, [1.5, 0.0, -2., 0.0]);
+    this.addCurve(g_scene, embree.RTC_GEOMETRY_TYPE_NORMAL_ORIENTED_CATMULL_ROM_CURVE, [+4.5, 0.0, -2., 0.0]);
 
-    RTC.commitScene (this.g_scene);
+    RTC.commitScene(this.g_scene);
   }
 
   device_cleanup(): void {
-    
+
   }
 
-  interpolate_linear(out: vec3, primID: uint, u: float)
-  {
-    const c0 = static_hair_vertex_colors[primID+1];
-    const c1 = static_hair_vertex_colors[primID+2];
+  interpolate_linear(out: vec3, primID: uint, u: float) {
+    const c0 = static_hair_vertex_colors[primID + 1];
+    const c1 = static_hair_vertex_colors[primID + 2];
 
-    vec3.scale(out, c0, 1-u);
+    vec3.scale(out, c0, 1 - u);
     vec3.scaleAndAdd(out, out, c1, u);
     return out;
   }
 
-interpolate_bspline(out: vec3, primID: uint, u: float)
-{
-  const c0 = static_hair_vertex_colors[primID+0];
-  const c1 = static_hair_vertex_colors[primID+1];
-  const c2 = static_hair_vertex_colors[primID+2];
-  const c3 = static_hair_vertex_colors[primID+3];
-  const t  = u;
-  const s  = 1.0 - u;
-  const n0 = s*s*s;
-  const n1 = (4.0*(s*s*s)+(t*t*t)) + (12.0*((s*t)*s) + 6.0*((t*s)*t));
-  const n2 = (4.0*(t*t*t)+(s*s*s)) + (12.0*((t*s)*t) + 6.0*((s*t)*s));
-  const n3 = t*t*t;
+  interpolate_bspline(out: vec3, primID: uint, u: float) {
+    const c0 = static_hair_vertex_colors[primID + 0];
+    const c1 = static_hair_vertex_colors[primID + 1];
+    const c2 = static_hair_vertex_colors[primID + 2];
+    const c3 = static_hair_vertex_colors[primID + 3];
+    const t = u;
+    const s = 1.0 - u;
+    const n0 = s * s * s;
+    const n1 = (4.0 * (s * s * s) + (t * t * t)) + (12.0 * ((s * t) * s) + 6.0 * ((t * s) * t));
+    const n2 = (4.0 * (t * t * t) + (s * s * s)) + (12.0 * ((t * s) * t) + 6.0 * ((s * t) * s));
+    const n3 = t * t * t;
 
 
-  vec3.scale(out, c0, n0);
-  vec3.scaleAndAdd(out, out, c1, n1);
-  vec3.scaleAndAdd(out, out, c2, n2);
-  vec3.scaleAndAdd(out, out, c3, n3);
-  vec3.scale(out, out, 1/6);
+    vec3.scale(out, c0, n0);
+    vec3.scaleAndAdd(out, out, c1, n1);
+    vec3.scaleAndAdd(out, out, c2, n2);
+    vec3.scaleAndAdd(out, out, c3, n3);
+    vec3.scale(out, out, 1 / 6);
 
-  return out;
-}
+    return out;
+  }
 
-interpolate_catmull_rom(out: vec3, primID: uint, u: float)
-{
-  const c0 = static_hair_vertex_colors[primID+0];
-  const c1 = static_hair_vertex_colors[primID+1];
-  const c2 = static_hair_vertex_colors[primID+2];
-  const c3 = static_hair_vertex_colors[primID+3];
-  const t  = u;
-  const s  = 1.0 - u;
-  const n0 = - t * s * s;
-  const n1 = 2.0 + t * t * (3.0 * t - 5.0);
-  const n2 = 2.0 + s * s * (3.0 * s - 5.0);
-  const n3 = - s * t * t;
+  interpolate_catmull_rom(out: vec3, primID: uint, u: float) {
+    const c0 = static_hair_vertex_colors[primID + 0];
+    const c1 = static_hair_vertex_colors[primID + 1];
+    const c2 = static_hair_vertex_colors[primID + 2];
+    const c3 = static_hair_vertex_colors[primID + 3];
+    const t = u;
+    const s = 1.0 - u;
+    const n0 = - t * s * s;
+    const n1 = 2.0 + t * t * (3.0 * t - 5.0);
+    const n2 = 2.0 + s * s * (3.0 * s - 5.0);
+    const n3 = - s * t * t;
 
-  vec3.scale(out, c0, n0);
-  vec3.scaleAndAdd(out, out, c1, n1);
-  vec3.scaleAndAdd(out, out, c2, n2);
-  vec3.scaleAndAdd(out, out, c3, n3);
-  vec3.scale(out, out, 1/2);
+    vec3.scale(out, c0, n0);
+    vec3.scaleAndAdd(out, out, c1, n1);
+    vec3.scaleAndAdd(out, out, c2, n2);
+    vec3.scaleAndAdd(out, out, c3, n3);
+    vec3.scale(out, out, 1 / 2);
 
-  return out;
-}
+    return out;
+  }
 
   renderPixelStandard(outPixel: vec4, x: number, y: number, width: number, height: number, time: number, camera: ISPCCamera): vec4 {
     const rayHit = this.rayHit;
@@ -215,22 +211,21 @@ interpolate_catmull_rom(out: vec3, primID: uint, u: float)
     hit.geomID = hit.primID = -1;
 
     camera.setRayDir(v.dir, x, y);
-    [rayHit.ray.dir_x, rayHit.ray.dir_y,rayHit.ray.dir_z] = v.dir;
+    [rayHit.ray.dir_x, rayHit.ray.dir_y, rayHit.ray.dir_z] = v.dir;
     RTC.intersect1(this.g_scene, rayHit);
 
 
     vec3.set(v.color, 0, 0, 0);
-    if(hit.geomID != -1) {
+    if (hit.geomID != -1) {
       vec3.set(v.diffuse, 1, 0, 0)
 
-      if (hit.geomID > 0)
-      {
+      if (hit.geomID > 0) {
         switch (hit.geomID) {
-        case 1: case 2: case 6: this.interpolate_linear(v.diffuse, hit.primID, hit.u); break;
-        case 3: case 4: case 5: this.interpolate_bspline(v.diffuse,hit.primID,hit.u); break;
-        case 7: case 8: case 9: this.interpolate_catmull_rom(v.diffuse,hit.primID,hit.u); break;
+          case 1: case 2: case 6: this.interpolate_linear(v.diffuse, hit.primID, hit.u); break;
+          case 3: case 4: case 5: this.interpolate_bspline(v.diffuse, hit.primID, hit.u); break;
+          case 7: case 8: case 9: this.interpolate_catmull_rom(v.diffuse, hit.primID, hit.u); break;
         }
-  
+
         vec3.scale(v.diffuse, v.diffuse, 0.5);
       }
 
@@ -250,7 +245,7 @@ interpolate_catmull_rom(out: vec3, primID: uint, u: float)
 
       RTC.occluded1(this.g_scene, shadow);
 
-      if(shadow.tfar >= 0) {
+      if (shadow.tfar >= 0) {
         vec3.normalize(v.shadow_fx, reflect(v.shadow_fx, v.dir, v.Ng))
         const s = Math.pow(clamp(vec3.dot(v.shadow_fx, v.lightDir), 0, 1), 10);
         const d = clamp(-vec3.dot(v.lightDir, v.Ng), 0, 1);
@@ -265,7 +260,7 @@ interpolate_catmull_rom(out: vec3, primID: uint, u: float)
     const g = 255 * clamp(v.color[1], 0, 1)
     const b = 255 * clamp(v.color[2], 0, 1)
     const a = 255
-    return vec4.set(outPixel, r,g,b,a);
+    return vec4.set(outPixel, r, g, b, a);
   }
 }
 

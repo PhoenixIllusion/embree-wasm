@@ -33,9 +33,9 @@ export class RenderQueue extends WorkerQueue<WorkerRequest, WorkerResponse, numb
 
 export interface Renderer {
 
-  renderPixelStandard(outPixel: vec4, x: uint, y: uint, 
+  renderPixelStandard(outPixel: vec4, x: uint, y: uint,
     width: uint, height: uint,
-    time: float ,
+    time: float,
     camera: ISPCCamera): vec4;
 
   renderTileStandard(taskIndex: uint,
@@ -48,7 +48,7 @@ export interface Renderer {
     numTilesX: uint,
     numTilesY: uint, dX: number, dY: number, stride: number): void
 
-  renderTileTask (taskIndex: uint, threadIndex: uint, pixels: Uint8ClampedArray,
+  renderTileTask(taskIndex: uint, threadIndex: uint, pixels: Uint8ClampedArray,
     width: uint,
     height: uint,
     time: float,
@@ -56,7 +56,7 @@ export interface Renderer {
     numTilesX: uint,
     numTilesY: uint, offsetX: number, offsetY: number): void;
 
-  renderFrameStandard( pixels: Uint8ClampedArray,
+  renderFrameStandard(pixels: Uint8ClampedArray,
     width: uint,
     height: uint,
     time: float,
@@ -65,13 +65,13 @@ export interface Renderer {
 
 export abstract class DefaultRenderer implements Renderer {
 
-  constructor( public TILE_SIZE_X: number = 8, public TILE_SIZE_Y: number = 8) {
+  constructor(public TILE_SIZE_X: number = 8, public TILE_SIZE_Y: number = 8) {
 
   }
 
-  abstract renderPixelStandard(outPixel: vec4, x: uint, y: uint, 
+  abstract renderPixelStandard(outPixel: vec4, x: uint, y: uint,
     width: uint, height: uint,
-    time: float ,
+    time: float,
     camera: ISPCCamera): vec4;
 
   renderTileStandard(taskIndex: uint,
@@ -83,30 +83,29 @@ export abstract class DefaultRenderer implements Renderer {
     camera: ISPCCamera,
     numTilesX: uint,
     _numTilesY: uint, dX: number = 0, dY: number = 0, stride: number = 0) {
-      const tileY = Math.floor(taskIndex / numTilesX);
-      const tileX = taskIndex - tileY * numTilesX;
-      const x0 = tileX * this.TILE_SIZE_X;
-      const x1 = Math.min(x0 + this.TILE_SIZE_X, width);
-      const y0 = tileY * this.TILE_SIZE_Y;
-      const y1 = Math.min(y0 + this.TILE_SIZE_Y, height);
-      stride = stride || width;
-      
-      const outPixel = vec4.create();
-      for (let y=y0; y<y1; y++)
-      for (let  x=x0; x<x1; x++)
-      {
-        const index = ((x-dX) + (y-dY) * stride)*4;
-        pixels.set(this.renderPixelStandard(outPixel, x,y,width,height,time,camera), index);
+    const tileY = Math.floor(taskIndex / numTilesX);
+    const tileX = taskIndex - tileY * numTilesX;
+    const x0 = tileX * this.TILE_SIZE_X;
+    const x1 = Math.min(x0 + this.TILE_SIZE_X, width);
+    const y0 = tileY * this.TILE_SIZE_Y;
+    const y1 = Math.min(y0 + this.TILE_SIZE_Y, height);
+    stride = stride || width;
+
+    const outPixel = vec4.create();
+    for (let y = y0; y < y1; y++)
+      for (let x = x0; x < x1; x++) {
+        const index = ((x - dX) + (y - dY) * stride) * 4;
+        pixels.set(this.renderPixelStandard(outPixel, x, y, width, height, time, camera), index);
       }
-    }
+  }
 
   async renderTilesWithWorkerQueue(pixels: ArrayBuffer[], width: uint, height: uint, time: float, ispcCamera: ISPCCamera,
-      numTilesX: uint, numTilesY: uint, queue: RenderQueue) {
+    numTilesX: uint, numTilesY: uint, queue: RenderQueue) {
 
     queue.onData = (i: number, response: WorkerResponse) => {
       pixels[i] = new Uint8ClampedArray(response.pixels);
     }
-    for(let i=0; i < pixels.length; i++) {
+    for (let i = 0; i < pixels.length; i++) {
       queue.enqueue({
         render: {
           taskIndex: i,
@@ -118,19 +117,19 @@ export abstract class DefaultRenderer implements Renderer {
     }
     return queue.process();
   }
-  
 
-  renderFrameStandard( pixels: Uint8ClampedArray,
+
+  renderFrameStandard(pixels: Uint8ClampedArray,
     width: uint,
     height: uint,
     time: float,
     camera: ISPCCamera): void {
 
-      const numTilesX = Math.floor((width  + this.TILE_SIZE_X-1)/this.TILE_SIZE_X);
-      const numTilesY = Math.floor((height + this.TILE_SIZE_Y-1)/this.TILE_SIZE_Y);
-      const range = numTilesX * numTilesY;
-      for(let i=0; i < range; i++) {
-        this.renderTileStandard(i, i, pixels, width, height, time, camera, numTilesX, numTilesY);
-      }
+    const numTilesX = Math.floor((width + this.TILE_SIZE_X - 1) / this.TILE_SIZE_X);
+    const numTilesY = Math.floor((height + this.TILE_SIZE_Y - 1) / this.TILE_SIZE_Y);
+    const range = numTilesX * numTilesY;
+    for (let i = 0; i < range; i++) {
+      this.renderTileStandard(i, i, pixels, width, height, time, camera, numTilesX, numTilesY);
+    }
   }
 }

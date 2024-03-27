@@ -74,6 +74,6 @@ export const static_hair_flags_linear = [
 
 export class TutorialData {
   constructor() {
-    
+
   }
 }

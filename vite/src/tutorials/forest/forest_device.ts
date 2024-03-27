@@ -25,7 +25,7 @@ else if (g_complexity == 2) { num_trees_sqrt = 750; }
 else { num_trees_sqrt = 2000; }
 let num_trees = num_trees_sqrt * num_trees_sqrt;
 
-const g_trees = [ 0, 1, 2, 3, 4, 5 ];
+const g_trees = [0, 1, 2, 3, 4, 5];
 
 const data = {
   spp: 2
@@ -272,18 +272,17 @@ export default class ForestTutorial extends TutorialApplication {
   }
 
 
- rebuild_instances(old_num_trees: number): void
-{
+  rebuild_instances(old_num_trees: number): void {
     const instance_array = this.instance_array = RTC.newGeometry(this.g_device, embree.RTC_GEOMETRY_TYPE_INSTANCE_ARRAY);
-    RTC.setGeometryInstancedScenes(instance_array, this.scene_trees_selected.byteOffset,6);
-    RTC.setSharedGeometryBuffer(instance_array, embree.RTC_BUFFER_TYPE_INDEX,     0, embree.RTC_FORMAT_UINT,                  
-        this.tree_ids.byteOffset, 0, 4,  num_trees);
+    RTC.setGeometryInstancedScenes(instance_array, this.scene_trees_selected.byteOffset, 6);
+    RTC.setSharedGeometryBuffer(instance_array, embree.RTC_BUFFER_TYPE_INDEX, 0, embree.RTC_FORMAT_UINT,
+      this.tree_ids.byteOffset, 0, 4, num_trees);
     RTC.setSharedGeometryBuffer(instance_array, embree.RTC_BUFFER_TYPE_TRANSFORM, 0, embree.RTC_FORMAT_FLOAT4X4_COLUMN_MAJOR,
       this.tree_transforms.byteOffset, 0, 16 * 4, num_trees);
-    RTC.attachGeometry(this.g_scene,instance_array);
+    RTC.attachGeometry(this.g_scene, instance_array);
     RTC.releaseGeometry(instance_array);
     RTC.commitGeometry(instance_array);
-}
+  }
 
   renderPixelStandard(outPixel: vec4, x: number, y: number, width: number, height: number, time: number, camera: ISPCCamera): vec4 {
     if (!this.rayHit) {
@@ -293,78 +292,77 @@ export default class ForestTutorial extends TutorialApplication {
     vec3.set(v.color_accum, 0, 0, 0);
 
     for (let j = 0; j < data.spp; ++j)
-    for (let i = 0; i < data.spp; ++i)
-    {
-      const fx =  x + (i + 0.5) / 3;
-      const fy =  y + (j + 0.5) / 3;
-      const rayHit = this.rayHit;
-      const ray = rayHit.ray;
-      const hit = rayHit.hit;
-      rayHit.ray = camera.setRayOrigin(rayHit.ray)
-      ray.tnear = 0;
-      ray.tfar = 1e30;
-      ray.mask = -1;
-      hit.geomID = hit.primID = -1;
+      for (let i = 0; i < data.spp; ++i) {
+        const fx = x + (i + 0.5) / 3;
+        const fy = y + (j + 0.5) / 3;
+        const rayHit = this.rayHit;
+        const ray = rayHit.ray;
+        const hit = rayHit.hit;
+        rayHit.ray = camera.setRayOrigin(rayHit.ray)
+        ray.tnear = 0;
+        ray.tfar = 1e30;
+        ray.mask = -1;
+        hit.geomID = hit.primID = -1;
 
-      camera.setRayDir(v.dir, fx, fy);
-      [rayHit.ray.dir_x, rayHit.ray.dir_y, rayHit.ray.dir_z] = v.dir;
-      RTC.intersect1(this.g_scene, rayHit);
+        camera.setRayDir(v.dir, fx, fy);
+        [rayHit.ray.dir_x, rayHit.ray.dir_y, rayHit.ray.dir_z] = v.dir;
+        RTC.intersect1(this.g_scene, rayHit);
 
-      vec3.set(v.color, 0, 0, 0);
-      if (hit.geomID != -1) {
+        vec3.set(v.color, 0, 0, 0);
+        if (hit.geomID != -1) {
 
-        vec3.set(v.diffuse, 1, 1, 1);
-        const diffuse = v.diffuse;
-        if(hit.get_instID(0) != -1) {
-          let tree_idx = 0;
-          if(hit.get_instPrimID(0) != -1) {
-            tree_idx = hit.get_instPrimID(0)
+          vec3.set(v.diffuse, 1, 1, 1);
+          const diffuse = v.diffuse;
+          if (hit.get_instID(0) != -1) {
+            let tree_idx = 0;
+            if (hit.get_instPrimID(0) != -1) {
+              tree_idx = hit.get_instPrimID(0)
+            } else {
+              tree_idx = hit.get_instID(0) - 1;
+            }
+
+            const tree_id = this.trees_selected[this.tree_ids[tree_idx]];
+            const tree_indices = TreeStructs.tree_indices[tree_id];
+            const offset = hit.primID * 3;
+            const [v0, v1, v2] = tree_indices.slice(offset, offset + 3).map(x => x * 3);;
+            const tc = TreeStructs.tree_colors[tree_id];
+            const c0 = vec3.set(v.c0, tc[v0], tc[v0 + 1], tc[v0 + 2]);
+            const c1 = vec3.set(v.c0, tc[v1], tc[v1 + 1], tc[v1 + 2]);
+            const c2 = vec3.set(v.c0, tc[v2], tc[v2 + 1], tc[v2 + 2]);
+            const u = hit.u, _v = hit.v, w = 1.0 - u - _v;
+            vec3.scale(diffuse, c0, w)
+            vec3.scaleAndAdd(diffuse, diffuse, c1, u)
+            vec3.scaleAndAdd(diffuse, diffuse, c2, _v);
           } else {
-            tree_idx = hit.get_instID(0) - 1;
+            vec3.set(v.diffuse, 0.5, 0.8, 0.0);
           }
 
-          const tree_id = this.trees_selected[this.tree_ids[tree_idx]];
-          const tree_indices = TreeStructs.tree_indices[tree_id];
-          const offset = hit.primID * 3;
-          const [v0, v1, v2] = tree_indices.slice(offset, offset + 3).map(x => x * 3);;
-          const tc =  TreeStructs.tree_colors[tree_id];
-          const c0 = vec3.set(v.c0, tc[v0], tc[v0+1], tc[v0+2]);
-          const c1 = vec3.set(v.c0, tc[v1], tc[v1+1], tc[v1+2]);
-          const c2 = vec3.set(v.c0, tc[v2], tc[v2+1], tc[v2+2]);
-          const u = hit.u, _v = hit.v, w = 1.0-u-_v;
-          vec3.scale(diffuse, c0, w)
-          vec3.scaleAndAdd(diffuse, diffuse, c1, u)
-          vec3.scaleAndAdd(diffuse, diffuse, c2, _v);
-        } else {
-          vec3.set(v.diffuse, 0.5, 0.8, 0.0);
+          vec3.set(v.Ng, hit.Ng_x, hit.Ng_y, hit.Ng_z);
+          vec3.normalize(v.Ng, v.Ng);
+          vec3.scaleAndAdd(v.color, v.color, v.diffuse, 0.5);
+          vec3.normalize(v.lightDir, vec3.set(v.lightDir, -1, -1, -1));
+
+          vec3.scaleAndAdd(v.shadowOrig, camera.xfm.p, v.dir, ray.tfar);
+          vec3.negate(v.shadowDir, v.lightDir);
+          const shadow = this.shadow;
+          shadow.mask = -1;
+          [shadow.org_x, shadow.org_y, shadow.org_z] = v.shadowOrig;
+          [shadow.dir_x, shadow.dir_y, shadow.dir_z] = v.shadowDir;
+          [shadow.tnear, shadow.tfar] = [0.001, 1e30];
+
+          RTC.occluded1(this.g_scene, shadow);
+
+          if (shadow.tfar >= 0) {
+            const d = clamp(-vec3.dot(v.lightDir, v.Ng), 0, 1);
+            vec3.scaleAndAdd(v.color, v.color, v.diffuse, d);
+          }
         }
-
-        vec3.set(v.Ng, hit.Ng_x, hit.Ng_y, hit.Ng_z);
-        vec3.normalize(v.Ng, v.Ng);
-        vec3.scaleAndAdd(v.color, v.color, v.diffuse, 0.5);
-        vec3.normalize(v.lightDir, vec3.set(v.lightDir, -1, -1, -1));
-
-        vec3.scaleAndAdd(v.shadowOrig, camera.xfm.p, v.dir, ray.tfar);
-        vec3.negate(v.shadowDir, v.lightDir);
-        const shadow = this.shadow;
-        shadow.mask = -1;
-        [shadow.org_x, shadow.org_y, shadow.org_z] = v.shadowOrig;
-        [shadow.dir_x, shadow.dir_y, shadow.dir_z] = v.shadowDir;
-        [shadow.tnear, shadow.tfar] = [0.001, 1e30];
-
-        RTC.occluded1(this.g_scene, shadow);
-
-        if (shadow.tfar >= 0) {
-          const d = clamp(-vec3.dot(v.lightDir, v.Ng), 0, 1);
-          vec3.scaleAndAdd(v.color, v.color, v.diffuse, d);
-        }
+        vec3.add(v.color_accum, v.color_accum, v.color);
       }
-      vec3.add(v.color_accum, v.color_accum, v.color);
-    }
 
-    const r = 255 * clamp(v.color_accum[0]/(data.spp*data.spp), 0, 1)
-    const g = 255 * clamp(v.color_accum[1]/(data.spp*data.spp), 0, 1)
-    const b = 255 * clamp(v.color_accum[2]/(data.spp*data.spp), 0, 1)
+    const r = 255 * clamp(v.color_accum[0] / (data.spp * data.spp), 0, 1)
+    const g = 255 * clamp(v.color_accum[1] / (data.spp * data.spp), 0, 1)
+    const b = 255 * clamp(v.color_accum[2] / (data.spp * data.spp), 0, 1)
     const a = 255
     return vec4.set(outPixel, r, g, b, a);
   }
@@ -381,10 +379,10 @@ export default class ForestTutorial extends TutorialApplication {
 
     let old_num_trees = num_trees;
 
-    if(this.g_scene) {
+    if (this.g_scene) {
       RTC.releaseScene(this.g_scene);
     }
-    for(let i=0; i < 6; i++) {
+    for (let i = 0; i < 6; i++) {
       this.trees_selected[i] = g_trees[i];
       this.scene_trees_selected[i] = embree.getPointer(this.scene_trees[i]);
     }

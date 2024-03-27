@@ -13,18 +13,18 @@ export class Ray {
   mask: Uint32Array;
   id: Uint32Array;
   flags: Uint32Array;
-  constructor( embree: typeof Embree, ptr: number) {
+  constructor(embree: typeof Embree, ptr: number) {
     const buffer = embree.HEAP8.buffer;
     let i = 0;
-    this.orig = new Float32Array(buffer, ptr, 3); i+=12;
-    this.tnear = new Float32Array(buffer, ptr+i, 1); i+=4;
-    this.dir = new Float32Array(buffer,  ptr+i, 3); i+=12;
-    this.time = new Float32Array(buffer, ptr+i, 1); i+=4;
+    this.orig = new Float32Array(buffer, ptr, 3); i += 12;
+    this.tnear = new Float32Array(buffer, ptr + i, 1); i += 4;
+    this.dir = new Float32Array(buffer, ptr + i, 3); i += 12;
+    this.time = new Float32Array(buffer, ptr + i, 1); i += 4;
 
-    this.tfar = new Float32Array(buffer, ptr+i, 1); i+=4;
-    this.mask = new Uint32Array(buffer, ptr+i, 1); i+=4;
-    this.id = new Uint32Array(buffer, ptr+i, 1); i+=4;
-    this.flags = new Uint32Array(buffer, ptr+i, 1); i+=4;
+    this.tfar = new Float32Array(buffer, ptr + i, 1); i += 4;
+    this.mask = new Uint32Array(buffer, ptr + i, 1); i += 4;
+    this.id = new Uint32Array(buffer, ptr + i, 1); i += 4;
+    this.flags = new Uint32Array(buffer, ptr + i, 1); i += 4;
 
   }
 }
@@ -36,15 +36,15 @@ export class Hit {
   primID: Int32Array;
   instID: Int32Array;
   instPrimID: Int32Array;
-  constructor( embree: typeof Embree, ptr: number) {
+  constructor(embree: typeof Embree, ptr: number) {
     const buffer = embree.HEAP8.buffer;
     let i = 0;
     this.Ng = new Float32Array(buffer, ptr, 3); i += 12;
     this.UV = new Float32Array(buffer, ptr + i, 2); i += 8;
-    this.primID = new Int32Array(buffer, ptr+i, 1); i += 4;
-    this.geomID = new Int32Array(buffer, ptr+i, 1); i += 4;
-    this.instID = new Int32Array(buffer, ptr+i, 1); i += 4;
-    this.instPrimID = new Int32Array(buffer, ptr+i, 1); i += 4;
+    this.primID = new Int32Array(buffer, ptr + i, 1); i += 4;
+    this.geomID = new Int32Array(buffer, ptr + i, 1); i += 4;
+    this.instID = new Int32Array(buffer, ptr + i, 1); i += 4;
+    this.instPrimID = new Int32Array(buffer, ptr + i, 1); i += 4;
   }
 }
 
@@ -52,13 +52,13 @@ export interface StreamingData {
   rayColorResults: Float32Array[];
   rayDiffuseResults: Float32Array[];
   shadowIndex: Uint16Array;
-  
+
   rayStreamCacheData: Uint8Array;
   shadowCache: Uint8Array;
-  
+
   rayStreamContext: Embree.RTCIntersectArguments;
   shadowStreamContext: Embree.RTCOccludedArguments;
-  rayStream: {ray: Ray, hit: Hit}[];
+  rayStream: { ray: Ray, hit: Hit }[];
   shadowStream: Ray[]
   rayStreamPtr: Uint32Array;
   shadowStreamPtr: Uint32Array;
@@ -70,7 +70,7 @@ export function setupRayStreamData(embree: typeof Embree, camera: ISPCCamera, TI
   const shadowStreamPtr = embree.allocTypedArray(TILE_SIZE_X * TILE_SIZE_Y, Uint32Array);
   const shadowIndex = new Uint16Array(TILE_SIZE_X * TILE_SIZE_Y);
 
-  const rayStream: {ray: Ray, hit: Hit}[] = [];
+  const rayStream: { ray: Ray, hit: Hit }[] = [];
   const shadowStream: Ray[] = [];
 
   const rayColorResults: Float32Array[] = [];
@@ -86,15 +86,15 @@ export function setupRayStreamData(embree: typeof Embree, camera: ISPCCamera, TI
   const SIZE_OF_RAYHIT = RTC.sizeOfRTCRayHit();
   const SIZE_OF_RAY = RTC.sizeOfRTCRay();
 
-  for(let i=0;i<TILE_SIZE_X*TILE_SIZE_Y;i++) {
+  for (let i = 0; i < TILE_SIZE_X * TILE_SIZE_Y; i++) {
     const rayHit = embree.allocRTCRayHit();
     const sPtr = rayStreamPtr[i] = embree.getPointer(rayHit)
-    rayStream[i] = { ray: new Ray(embree, sPtr), hit: new Hit(embree, sPtr + SIZE_OF_RAY)};
+    rayStream[i] = { ray: new Ray(embree, sPtr), hit: new Hit(embree, sPtr + SIZE_OF_RAY) };
     const shadow = new embree.RTCRay();
     shadowStreamPtr[i] = embree.getPointer(shadow);
     shadowStream[i] = new Ray(embree, shadowStreamPtr[i])
 
-    rayColorResults[i] = new Float32Array([0,0,0,255]);
+    rayColorResults[i] = new Float32Array([0, 0, 0, 255]);
     rayDiffuseResults[i] = new Float32Array(3);
   }
   const rayStreamCacheData = new Uint8Array(SIZE_OF_RAYHIT);
@@ -110,7 +110,7 @@ export function setupRayStreamData(embree: typeof Embree, camera: ISPCCamera, TI
     rayHit.hit.geomID[0] = rayHit.hit.primID[0] = -1;
   }
   rayStreamCacheData.set(embree.HEAPU8.subarray(rayStreamPtr[0], rayStreamPtr[0] + SIZE_OF_RAYHIT));
-  const shadowCache = rayStreamCacheData.subarray(0,SIZE_OF_RAY);
+  const shadowCache = rayStreamCacheData.subarray(0, SIZE_OF_RAY);
 
   return {
     rayColorResults,

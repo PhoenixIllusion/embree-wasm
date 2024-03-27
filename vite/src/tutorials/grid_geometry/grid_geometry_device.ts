@@ -52,7 +52,7 @@ const V = {
 const noise = new Noise(Math.E);
 
 export function mylerp(out: vec3, f: float, a: vec3, b: vec3): vec3 {
-  vec3.scale(out, a, 1-f);
+  vec3.scale(out, a, 1 - f);
   vec3.scaleAndAdd(out, out, b, f);
   return out;
 }
@@ -63,52 +63,50 @@ function displacement(P: vec3): float {
   const scale = 0.5
   const freq = 5;
 
-  x*=freq;
-  y*=freq;
-  z*=freq;
+  x *= freq;
+  y *= freq;
+  z *= freq;
   /*
   const dx = cos(x*freq)*scale + (1-scale);
   const dy = cos(y*freq)*scale + (1-scale);
   const dz = sin(z*freq)*scale + (1-scale);*/
-  return noise.perlin3(x, y, z) * scale + 1-scale;
+  return noise.perlin3(x, y, z) * scale + 1 - scale;
 }
 
-function _getVertex(gmesh: GridMesh, grid: HGrid, x: number, y: number): vec3
-{
+function _getVertex(gmesh: GridMesh, grid: HGrid, x: number, y: number): vec3 {
   y = Math.floor(y);
   x = Math.floor(x);
   const startVertexID = grid.startVertexID;
   const strideX = grid.strideX;
   const strideY = grid.strideY;
-  return gmesh.vertices[startVertexID + y*strideY + x*strideX].vec3;
+  return gmesh.vertices[startVertexID + y * strideY + x * strideX].vec3;
 }
 
-function getVertex(gmesh: GridMesh, subdiv: Embree.Geometry, hgrids: HGrid[], firstHalfEdge: number, f: number, i: number, x: number, y: number, opt: vec3): vec3
-{
-  const width  = 0 | hgrids[firstHalfEdge].width;
+function getVertex(gmesh: GridMesh, subdiv: Embree.Geometry, hgrids: HGrid[], firstHalfEdge: number, f: number, i: number, x: number, y: number, opt: vec3): vec3 {
+  const width = 0 | hgrids[firstHalfEdge].width;
   const height = 0 | hgrids[firstHalfEdge].height;
   if (x < 0) {
-    const edge = RTC.getGeometryPreviousHalfEdge(subdiv,firstHalfEdge);
-    const oedge = RTC.getGeometryOppositeHalfEdge(subdiv,0,edge);
+    const edge = RTC.getGeometryPreviousHalfEdge(subdiv, firstHalfEdge);
+    const oedge = RTC.getGeometryOppositeHalfEdge(subdiv, 0, edge);
     if (oedge == edge) return opt; // return alternative vertex when requested vertex does not exist
-    return _getVertex(gmesh,hgrids[oedge],y,1);
+    return _getVertex(gmesh, hgrids[oedge], y, 1);
   }
   else if (y < 0) {
-    const oedge = RTC.getGeometryOppositeHalfEdge(subdiv,0,firstHalfEdge);
+    const oedge = RTC.getGeometryOppositeHalfEdge(subdiv, 0, firstHalfEdge);
     if (oedge == firstHalfEdge) return opt; // return alternative vertex when requested vertex does not exist
-    const noedge = RTC.getGeometryNextHalfEdge(subdiv,oedge);
-    return _getVertex(gmesh,hgrids[noedge],1,x);
+    const noedge = RTC.getGeometryNextHalfEdge(subdiv, oedge);
+    return _getVertex(gmesh, hgrids[noedge], 1, x);
   }
   else if (x >= width) {
-    const nedge = RTC.getGeometryNextHalfEdge(subdiv,firstHalfEdge);
-    return _getVertex(gmesh,hgrids[nedge],y,hgrids[nedge].height-2);
+    const nedge = RTC.getGeometryNextHalfEdge(subdiv, firstHalfEdge);
+    return _getVertex(gmesh, hgrids[nedge], y, hgrids[nedge].height - 2);
   }
   else if (y >= height) {
-    const pedge = RTC.getGeometryPreviousHalfEdge(subdiv,firstHalfEdge);
-    return _getVertex(gmesh,hgrids[pedge],hgrids[pedge].height-2,x);
+    const pedge = RTC.getGeometryPreviousHalfEdge(subdiv, firstHalfEdge);
+    return _getVertex(gmesh, hgrids[pedge], hgrids[pedge].height - 2, x);
   }
   else {
-    return _getVertex(gmesh,hgrids[firstHalfEdge],x,y);
+    return _getVertex(gmesh, hgrids[firstHalfEdge], x, y);
   }
 }
 
@@ -187,16 +185,16 @@ export default class GridGeometryTutorial extends TutorialApplication {
       }
     }
 
-    const geom = RTC.newGeometry (this.g_device, embree.RTC_GEOMETRY_TYPE_GRID);
-    const vertices_ptr = RTC.setNewGeometryBuffer(geom, embree.RTC_BUFFER_TYPE_VERTEX,0, embree.RTC_FORMAT_FLOAT3, SIZE_OF_VERTEX,numVertices);
-    const vertices_p = embree.wrapTypedArray(vertices_ptr, numVertices*4, Float32Array);
+    const geom = RTC.newGeometry(this.g_device, embree.RTC_GEOMETRY_TYPE_GRID);
+    const vertices_ptr = RTC.setNewGeometryBuffer(geom, embree.RTC_BUFFER_TYPE_VERTEX, 0, embree.RTC_FORMAT_FLOAT3, SIZE_OF_VERTEX, numVertices);
+    const vertices_p = embree.wrapTypedArray(vertices_ptr, numVertices * 4, Float32Array);
     vertices_p.fill(1);
     const vertices = wrapArrayAsVertex(vertices_p);
-    const normals_p = embree.allocAlignedTypedArray(numVertices*4,16, Float32Array);
+    const normals_p = embree.allocAlignedTypedArray(numVertices * 4, 16, Float32Array);
     normals_p.fill(1);
     const normals = wrapArrayAsVertex(normals_p);
-    const egrids_ptr = RTC.setNewGeometryBuffer(geom, embree.RTC_BUFFER_TYPE_GRID,0,embree.RTC_FORMAT_GRID, SIZE_OF_GRID, numGrids);
-    const egrids_p = embree.wrapTypedArray(egrids_ptr, numGrids*3, Uint32Array);
+    const egrids_ptr = RTC.setNewGeometryBuffer(geom, embree.RTC_BUFFER_TYPE_GRID, 0, embree.RTC_FORMAT_GRID, SIZE_OF_GRID, numGrids);
+    const egrids_p = embree.wrapTypedArray(egrids_ptr, numGrids * 3, Uint32Array);
     egrids_p.fill(1);
     const egrids = wrapArrayAsGrid(egrids_p);
 
@@ -214,119 +212,111 @@ export default class GridGeometryTutorial extends TutorialApplication {
     const dPdu = interpolate_ptr.subarray(4, 8);
     const dPdv = interpolate_ptr.subarray(8, 12);
 
-    let g=0; // grid index for embree grids
-    let h=0; // grid index for helper grids
+    let g = 0; // grid index for embree grids
+    let h = 0; // grid index for helper grids
     let startVertexIndex = 0;
 
     const crossV = vec3.create();
 
-    for (let f=0; f<NUM_FACES; f++) 
-    {
-      if (sphere_faces[f] == 4)
-      {
+    for (let f = 0; f < NUM_FACES; f++) {
+      if (sphere_faces[f] == 4) {
         egrids[g].startVertexID = startVertexIndex;
-        egrids[g].stride        = QUAD_GRID_RESOLUTION_X;
-        egrids[g].width         = QUAD_GRID_RESOLUTION_X;
-        egrids[g].height        = QUAD_GRID_RESOLUTION_Y;
-  
+        egrids[g].stride = QUAD_GRID_RESOLUTION_X;
+        egrids[g].width = QUAD_GRID_RESOLUTION_X;
+        egrids[g].height = QUAD_GRID_RESOLUTION_Y;
+
         hgrids[h] = {} as HGrid;
         hgrids[h].startVertexID = startVertexIndex;
-        hgrids[h].strideX       = 1;
-        hgrids[h].strideY       = QUAD_GRID_RESOLUTION_X;
-        hgrids[h].width         = QUAD_GRID_RESOLUTION_X/2+1;
-        hgrids[h].height        = QUAD_GRID_RESOLUTION_Y/2+1;
+        hgrids[h].strideX = 1;
+        hgrids[h].strideY = QUAD_GRID_RESOLUTION_X;
+        hgrids[h].width = QUAD_GRID_RESOLUTION_X / 2 + 1;
+        hgrids[h].height = QUAD_GRID_RESOLUTION_Y / 2 + 1;
         h++;
-  
-        hgrids[h] = {} as HGrid;
-        hgrids[h].startVertexID = startVertexIndex+QUAD_GRID_RESOLUTION_X-1;
-        hgrids[h].strideX       = QUAD_GRID_RESOLUTION_X;
-        hgrids[h].strideY       = -1;
-        hgrids[h].width         = QUAD_GRID_RESOLUTION_X/2+1;
-        hgrids[h].height        = QUAD_GRID_RESOLUTION_Y/2+1;
-        h++;
-  
-        hgrids[h] = {} as HGrid;
-        hgrids[h].startVertexID = startVertexIndex+QUAD_GRID_RESOLUTION_X*QUAD_GRID_RESOLUTION_Y-1;
-        hgrids[h].strideX       = -1;
-        hgrids[h].strideY       = -(0 |QUAD_GRID_RESOLUTION_X);
-        hgrids[h].width         = QUAD_GRID_RESOLUTION_X/2+1;
-        hgrids[h].height        = QUAD_GRID_RESOLUTION_Y/2+1;
-        h++;
-  
-        hgrids[h] = {} as HGrid;
-        hgrids[h].startVertexID = startVertexIndex+(QUAD_GRID_RESOLUTION_X-1)*QUAD_GRID_RESOLUTION_Y;
-        hgrids[h].strideX       = -(0 |QUAD_GRID_RESOLUTION_X);
-        hgrids[h].strideY       = 1;
-        hgrids[h].width         = QUAD_GRID_RESOLUTION_X/2+1;
-        hgrids[h].height        = QUAD_GRID_RESOLUTION_Y/2+1;
-        h++;
-  
-        /* calculate displaced vertices for quad-face */
-        for (let y=0; y<QUAD_GRID_RESOLUTION_Y; y++)
-        {
-          for (let x=0; x<QUAD_GRID_RESOLUTION_X; x++)
-          {
-            const u = x / (QUAD_GRID_RESOLUTION_X-1);
-            const v = y / (QUAD_GRID_RESOLUTION_Y-1);
-  
-            /* evaluate subdiv surface and displace points */
-            RTC.interpolate1(geomSubdiv,f,u,v, embree.RTC_BUFFER_TYPE_VERTEX,0,P.byteOffset,dPdu.byteOffset,dPdv.byteOffset,3);
 
-            vec3.cross(crossV, dPdu,dPdv);
+        hgrids[h] = {} as HGrid;
+        hgrids[h].startVertexID = startVertexIndex + QUAD_GRID_RESOLUTION_X - 1;
+        hgrids[h].strideX = QUAD_GRID_RESOLUTION_X;
+        hgrids[h].strideY = -1;
+        hgrids[h].width = QUAD_GRID_RESOLUTION_X / 2 + 1;
+        hgrids[h].height = QUAD_GRID_RESOLUTION_Y / 2 + 1;
+        h++;
+
+        hgrids[h] = {} as HGrid;
+        hgrids[h].startVertexID = startVertexIndex + QUAD_GRID_RESOLUTION_X * QUAD_GRID_RESOLUTION_Y - 1;
+        hgrids[h].strideX = -1;
+        hgrids[h].strideY = -(0 | QUAD_GRID_RESOLUTION_X);
+        hgrids[h].width = QUAD_GRID_RESOLUTION_X / 2 + 1;
+        hgrids[h].height = QUAD_GRID_RESOLUTION_Y / 2 + 1;
+        h++;
+
+        hgrids[h] = {} as HGrid;
+        hgrids[h].startVertexID = startVertexIndex + (QUAD_GRID_RESOLUTION_X - 1) * QUAD_GRID_RESOLUTION_Y;
+        hgrids[h].strideX = -(0 | QUAD_GRID_RESOLUTION_X);
+        hgrids[h].strideY = 1;
+        hgrids[h].width = QUAD_GRID_RESOLUTION_X / 2 + 1;
+        hgrids[h].height = QUAD_GRID_RESOLUTION_Y / 2 + 1;
+        h++;
+
+        /* calculate displaced vertices for quad-face */
+        for (let y = 0; y < QUAD_GRID_RESOLUTION_Y; y++) {
+          for (let x = 0; x < QUAD_GRID_RESOLUTION_X; x++) {
+            const u = x / (QUAD_GRID_RESOLUTION_X - 1);
+            const v = y / (QUAD_GRID_RESOLUTION_Y - 1);
+
+            /* evaluate subdiv surface and displace points */
+            RTC.interpolate1(geomSubdiv, f, u, v, embree.RTC_BUFFER_TYPE_VERTEX, 0, P.byteOffset, dPdu.byteOffset, dPdv.byteOffset, 3);
+
+            vec3.cross(crossV, dPdu, dPdv);
             vec3.normalize(crossV, crossV);
             vec3.scaleAndAdd(P, P, crossV, displacement(P))
-  
+
             /* write result to vertex buffer */
-            vec3.copy(vertices[startVertexIndex + y * QUAD_GRID_RESOLUTION_X + x].vec3,P);
-            vec3.set(normals [startVertexIndex + y * QUAD_GRID_RESOLUTION_X + x].vec3, 0,0,0); // calculated later
+            vec3.copy(vertices[startVertexIndex + y * QUAD_GRID_RESOLUTION_X + x].vec3, P);
+            vec3.set(normals[startVertexIndex + y * QUAD_GRID_RESOLUTION_X + x].vec3, 0, 0, 0); // calculated later
           }
         }
         startVertexIndex += QUAD_GRID_RESOLUTION_X * QUAD_GRID_RESOLUTION_Y;
         g++;
       }
-      else
-      {
+      else {
         /* iterate over all sub-faces */
-        for (let i=0; i<sphere_faces[f]; i++)
-        {
+        for (let i = 0; i < sphere_faces[f]; i++) {
           egrids[g].startVertexID = startVertexIndex;
-          egrids[g].stride        = SUB_GRID_RESOLUTION_X;
-          egrids[g].width         = SUB_GRID_RESOLUTION_X;
-          egrids[g].height        = SUB_GRID_RESOLUTION_Y;
-  
+          egrids[g].stride = SUB_GRID_RESOLUTION_X;
+          egrids[g].width = SUB_GRID_RESOLUTION_X;
+          egrids[g].height = SUB_GRID_RESOLUTION_Y;
+
           hgrids[h] = {} as HGrid;
           hgrids[h].startVertexID = startVertexIndex;
-          hgrids[h].strideX       = 1;
-          hgrids[h].strideY       = SUB_GRID_RESOLUTION_X;
-          hgrids[h].width         = SUB_GRID_RESOLUTION_X;
-          hgrids[h].height        = SUB_GRID_RESOLUTION_Y;
+          hgrids[h].strideX = 1;
+          hgrids[h].strideY = SUB_GRID_RESOLUTION_X;
+          hgrids[h].width = SUB_GRID_RESOLUTION_X;
+          hgrids[h].height = SUB_GRID_RESOLUTION_Y;
           h++;
-  
+
           /* calculate displaced vertices for sub-face */
-          for (let y=0; y<SUB_GRID_RESOLUTION_Y; y++)
-          {
-            for (let x=0; x<SUB_GRID_RESOLUTION_X; x++)
-            {
-              const u = x / (SUB_GRID_RESOLUTION_X-1);
-              const v = y / (SUB_GRID_RESOLUTION_Y-1);
-  
+          for (let y = 0; y < SUB_GRID_RESOLUTION_Y; y++) {
+            for (let x = 0; x < SUB_GRID_RESOLUTION_X; x++) {
+              const u = x / (SUB_GRID_RESOLUTION_X - 1);
+              const v = y / (SUB_GRID_RESOLUTION_Y - 1);
+
               /* encode UVs */
               const h = (i >> 2) & 3, l = i & 3;
-              const U = 2.0*l + 0.5 + u;
-              const V = 2.0*h + 0.5 + v;
-  
+              const U = 2.0 * l + 0.5 + u;
+              const V = 2.0 * h + 0.5 + v;
+
               /* evaluate subdiv surface and displace points */
               //TODO: Note, the below line is the correct version, the one below was a typo that looks cooler
-              RTC.interpolate1(geomSubdiv,f,U,V, embree.RTC_BUFFER_TYPE_VERTEX,0,P.byteOffset,dPdu.byteOffset,dPdv.byteOffset,3);
+              RTC.interpolate1(geomSubdiv, f, U, V, embree.RTC_BUFFER_TYPE_VERTEX, 0, P.byteOffset, dPdu.byteOffset, dPdv.byteOffset, 3);
               //RTC.interpolate1(geomSubdiv,f,u,v, embree.RTC_BUFFER_TYPE_VERTEX,0,P.byteOffset,dPdu.byteOffset,dPdv.byteOffset,3);
 
-              vec3.cross(crossV, dPdu,dPdv);
+              vec3.cross(crossV, dPdu, dPdv);
               vec3.normalize(crossV, crossV);
               vec3.scaleAndAdd(P, P, crossV, displacement(P))
-  
+
               /* write result to vertex buffer */
-              vec3.copy(vertices[startVertexIndex + y * SUB_GRID_RESOLUTION_X + x].vec3,P);
-              vec3.set(normals [startVertexIndex + y * SUB_GRID_RESOLUTION_X + x].vec3, 0,0,0); // calculated later
+              vec3.copy(vertices[startVertexIndex + y * SUB_GRID_RESOLUTION_X + x].vec3, P);
+              vec3.set(normals[startVertexIndex + y * SUB_GRID_RESOLUTION_X + x].vec3, 0, 0, 0); // calculated later
             }
           }
           startVertexIndex += SUB_GRID_RESOLUTION_X * SUB_GRID_RESOLUTION_Y;
@@ -348,27 +338,23 @@ export default class GridGeometryTutorial extends TutorialApplication {
 
     /* calculate normals by averaging normals of neighboring faces */
     h = 0;
-    for (let f=0; f<NUM_FACES; f++) 
-    {
-      for (let i=0; i<sphere_faces[f]; i++)
-      {
-        for (let y=0; y<SUB_GRID_RESOLUTION_Y; y++)
-        {
-          for (let x=0; x<SUB_GRID_RESOLUTION_X; x++)
-          {
-            const p  = _getVertex(gmesh,hgrids[h+i],x,y);
-            const pr = getVertex(gmesh,geomSubdiv,hgrids,h+i,f,i,x+1,y,p);
-            const pl = getVertex(gmesh,geomSubdiv,hgrids,h+i,f,i,x-1,y,p);
-            const pt = getVertex(gmesh,geomSubdiv,hgrids,h+i,f,i,x,y+1,p);
-            const pb = getVertex(gmesh,geomSubdiv,hgrids,h+i,f,i,x,y-1,p);
+    for (let f = 0; f < NUM_FACES; f++) {
+      for (let i = 0; i < sphere_faces[f]; i++) {
+        for (let y = 0; y < SUB_GRID_RESOLUTION_Y; y++) {
+          for (let x = 0; x < SUB_GRID_RESOLUTION_X; x++) {
+            const p = _getVertex(gmesh, hgrids[h + i], x, y);
+            const pr = getVertex(gmesh, geomSubdiv, hgrids, h + i, f, i, x + 1, y, p);
+            const pl = getVertex(gmesh, geomSubdiv, hgrids, h + i, f, i, x - 1, y, p);
+            const pt = getVertex(gmesh, geomSubdiv, hgrids, h + i, f, i, x, y + 1, p);
+            const pb = getVertex(gmesh, geomSubdiv, hgrids, h + i, f, i, x, y - 1, p);
             vec3.set(Ng, 0, 0, 0);
             vec3.add(Ng, Ng, crossSub(p, pr, p, pt));
             vec3.add(Ng, Ng, crossSub(p, pt, p, pl));
             vec3.add(Ng, Ng, crossSub(p, pl, p, pb));
             vec3.add(Ng, Ng, crossSub(p, pb, p, pr));
             vec3.normalize(Ng, Ng);
-            const grid = hgrids[h+i];
-            const index = grid.startVertexID + y*grid.strideY + x*grid.strideX;
+            const grid = hgrids[h + i];
+            const index = grid.startVertexID + y * grid.strideY + x * grid.strideX;
             vec3.copy(gmesh.normals[index].vec3, Ng);
           }
         }
@@ -376,72 +362,67 @@ export default class GridGeometryTutorial extends TutorialApplication {
       /* First special corner at (0,0). A different number than 4 faces may be 
        connected to this vertex. We need to walk all neighboring faces to 
        calculate a consistent normal. */
-       for (let i=0; i<sphere_faces[f]; i++)
-       {
-         /* find start of ring */
-         let first = true;
-         let startEdge = h+i;
-         while (first || startEdge != h+i)
-         {
-           first = false;
-           const oedge = RTC.getGeometryOppositeHalfEdge(geomSubdiv,0,startEdge);
-           if (oedge == startEdge) break;
-           startEdge = RTC.getGeometryNextHalfEdge(geomSubdiv,oedge);
-         }
-         
-         /* walk ring beginning at start */
-         first = true;
-         let edge = startEdge;
-         vec3.set(Ng, 0, 0, 0);
-         const p = _getVertex(gmesh,hgrids[edge],0,0);
-         while (first || edge != startEdge)
-         {
-           first = false;
-           const nedge = RTC.getGeometryNextHalfEdge(geomSubdiv,edge);
-           const pedge = RTC.getGeometryPreviousHalfEdge(geomSubdiv,edge);
-           const p0 = _getVertex(gmesh,hgrids[nedge],0,0);
-           const p1 = _getVertex(gmesh,hgrids[pedge],0,0);
-           vec3.add(Ng, Ng, crossSub(p, p0, p, p1));
-   
-           const oedge = RTC.getGeometryOppositeHalfEdge(geomSubdiv,0,pedge);
-           if (oedge == pedge) break;
-           edge = oedge;
-         }
-         
-         vec3.normalize(Ng, Ng);
-         vec3.copy(gmesh.normals[hgrids[h+i].startVertexID].vec3, Ng);
-       }
-   
-       /* Last special corner at (width-1,height-1). This fixes the center corner 
-          for non-quad faces. We need to walk all sub-faces to calculate a 
-          consistent normal. */
-       
+      for (let i = 0; i < sphere_faces[f]; i++) {
+        /* find start of ring */
+        let first = true;
+        let startEdge = h + i;
+        while (first || startEdge != h + i) {
+          first = false;
+          const oedge = RTC.getGeometryOppositeHalfEdge(geomSubdiv, 0, startEdge);
+          if (oedge == startEdge) break;
+          startEdge = RTC.getGeometryNextHalfEdge(geomSubdiv, oedge);
+        }
+
+        /* walk ring beginning at start */
+        first = true;
+        let edge = startEdge;
         vec3.set(Ng, 0, 0, 0);
-       for (let i=0; i<sphere_faces[f]; i++)
-       {
-         const grid = hgrids[h+i];
-         const p  = _getVertex(gmesh,grid,grid.width-1,grid.height-1);
-         const pl = _getVertex(gmesh,grid,grid.width-2,grid.height-1);
-         const pr = _getVertex(gmesh,grid,grid.width-1,grid.height-2);
-         vec3.add(Ng, Ng, crossSub(p, pl, p, pr));
-       }
-       vec3.normalize(Ng, Ng);
-   
-       for (let i=0; i<sphere_faces[f]; i++)
-       {
-         const grid = hgrids[h+i];
-         vec3.copy(gmesh.normals[grid.startVertexID + (grid.height-1)*grid.strideY + (grid.width-1)*grid.strideX].vec3, Ng);
-       }
-       
-       h+=sphere_faces[f];
-     }
+        const p = _getVertex(gmesh, hgrids[edge], 0, 0);
+        while (first || edge != startEdge) {
+          first = false;
+          const nedge = RTC.getGeometryNextHalfEdge(geomSubdiv, edge);
+          const pedge = RTC.getGeometryPreviousHalfEdge(geomSubdiv, edge);
+          const p0 = _getVertex(gmesh, hgrids[nedge], 0, 0);
+          const p1 = _getVertex(gmesh, hgrids[pedge], 0, 0);
+          vec3.add(Ng, Ng, crossSub(p, p0, p, p1));
+
+          const oedge = RTC.getGeometryOppositeHalfEdge(geomSubdiv, 0, pedge);
+          if (oedge == pedge) break;
+          edge = oedge;
+        }
+
+        vec3.normalize(Ng, Ng);
+        vec3.copy(gmesh.normals[hgrids[h + i].startVertexID].vec3, Ng);
+      }
+
+      /* Last special corner at (width-1,height-1). This fixes the center corner 
+         for non-quad faces. We need to walk all sub-faces to calculate a 
+         consistent normal. */
+
+      vec3.set(Ng, 0, 0, 0);
+      for (let i = 0; i < sphere_faces[f]; i++) {
+        const grid = hgrids[h + i];
+        const p = _getVertex(gmesh, grid, grid.width - 1, grid.height - 1);
+        const pl = _getVertex(gmesh, grid, grid.width - 2, grid.height - 1);
+        const pr = _getVertex(gmesh, grid, grid.width - 1, grid.height - 2);
+        vec3.add(Ng, Ng, crossSub(p, pl, p, pr));
+      }
+      vec3.normalize(Ng, Ng);
+
+      for (let i = 0; i < sphere_faces[f]; i++) {
+        const grid = hgrids[h + i];
+        vec3.copy(gmesh.normals[grid.startVertexID + (grid.height - 1) * grid.strideY + (grid.width - 1) * grid.strideX].vec3, Ng);
+      }
+
+      h += sphere_faces[f];
+    }
 
 
     /* we do not need this temporary data anymore */
     RTC.releaseGeometry(geomSubdiv);
-    
+
     RTC.commitGeometry(gmesh.geom);
-    RTC.attachGeometry(this.g_scene,gmesh.geom);
+    RTC.attachGeometry(this.g_scene, gmesh.geom);
   }
 
   addGroundPlane(scene_i: Embree.Scene) {
@@ -509,10 +490,10 @@ export default class GridGeometryTutorial extends TutorialApplication {
     vec3.set(v.color, 0, 0, 0);
     if (hit.geomID != -1) {
 
-      if(hit.geomID != 0) {
-        vec3.set(v.diffuse, 0.9,0.6,0.5);
+      if (hit.geomID != 0) {
+        vec3.set(v.diffuse, 0.9, 0.6, 0.5);
       } else {
-        vec3.set(v.diffuse, 0.8,0.0,0.0);
+        vec3.set(v.diffuse, 0.8, 0.0, 0.0);
       }
       vec3.normalize(v.lightDir, vec3.set(v.lightDir, -1, -1, -1));
 
@@ -521,21 +502,21 @@ export default class GridGeometryTutorial extends TutorialApplication {
         const ray = hit; //code often switches to this, even though not true
         const egrid = this.gmesh.egrids[ray.primID];
         const startVertexID = egrid.startVertexID;
-        const width         = egrid.width;
-        const height        = egrid.height;
-        const stride        = egrid.stride;
-        const U = ray.u*(width-1);
-        const V = ray.v*(height-1);
-        const x = min(floor(U),width -2);
-        const y = min(floor(V),height-2);
-        const u = U-x;
-        const v = V-y;
-        const N00 = this.gmesh.normals[startVertexID+(y+0)*stride+(x+0)];
-        const N01 = this.gmesh.normals[startVertexID+(y+0)*stride+(x+1)];
-        const N10 = this.gmesh.normals[startVertexID+(y+1)*stride+(x+0)];
-        const N11 = this.gmesh.normals[startVertexID+(y+1)*stride+(x+1)];
-        mylerp(v3.N0, u, N00.vec3,N01.vec3);
-        mylerp(v3.N1, u, N10.vec3,N11.vec3);
+        const width = egrid.width;
+        const height = egrid.height;
+        const stride = egrid.stride;
+        const U = ray.u * (width - 1);
+        const V = ray.v * (height - 1);
+        const x = min(floor(U), width - 2);
+        const y = min(floor(V), height - 2);
+        const u = U - x;
+        const v = V - y;
+        const N00 = this.gmesh.normals[startVertexID + (y + 0) * stride + (x + 0)];
+        const N01 = this.gmesh.normals[startVertexID + (y + 0) * stride + (x + 1)];
+        const N10 = this.gmesh.normals[startVertexID + (y + 1) * stride + (x + 0)];
+        const N11 = this.gmesh.normals[startVertexID + (y + 1) * stride + (x + 1)];
+        mylerp(v3.N0, u, N00.vec3, N01.vec3);
+        mylerp(v3.N1, u, N10.vec3, N11.vec3);
         vec3.normalize(v3.Ng, mylerp(v3.Ng, v, v3.N0, v3.N1));
       } else {
         vec3.set(v3.Ng, hit.Ng_x, hit.Ng_y, hit.Ng_z);

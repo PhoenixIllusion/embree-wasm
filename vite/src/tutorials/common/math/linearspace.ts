@@ -10,19 +10,19 @@ import { float } from "../types";
 import { TMP_V3, madd_vec3 } from "./math";
 
 export class LinearSpace3 {
-  constructor(public vx: vec3,public vy: vec3, public vz: vec3) {}
+  constructor(public vx: vec3, public vy: vec3, public vz: vec3) { }
 
   inverse() {
     const det = this.det();
     const adjoint = this.adjoint();
-    return adjoint.scaleScalar(1/det);
+    return adjoint.scaleScalar(1 / det);
   }
 
   transposed(): LinearSpace3 {
-    const [vxx,vxy,vxz] = this.vx;
-    const [vyx,vyy,vyz] = this.vy;
-    const [vzx,vzy,vzz] = this.vz;
-    return LinearSpace3.fromValues(vxx,vxy,vxz, vyx,vyy,vyz, vzx,vzy,vzz)
+    const [vxx, vxy, vxz] = this.vx;
+    const [vyx, vyy, vyz] = this.vy;
+    const [vzx, vzy, vzz] = this.vz;
+    return LinearSpace3.fromValues(vxx, vxy, vxz, vyx, vyy, vyz, vzx, vzy, vzz)
   }
   adjoint() {
     const crossYZ = vec3.cross(vec3.create(), this.vy, this.vz);
@@ -30,7 +30,7 @@ export class LinearSpace3 {
     const crossXY = vec3.cross(vec3.create(), this.vx, this.vy);
     return new LinearSpace3(crossYZ, crossZX, crossXY).transposed();
   }
-  det(){
+  det() {
     return vec3.dot(this.vx, vec3.cross(TMP_V3[0], this.vy, this.vz));
   }
 
@@ -39,7 +39,7 @@ export class LinearSpace3 {
   }
 
   transformPoint(out: vec3, p: vec3) {
-    const [x,y,z] = p;
+    const [x, y, z] = p;
     const bx = vec3.set(TMP_V3[0], x, x, x);
     const by = vec3.set(TMP_V3[1], y, y, y);
     const bz = vec3.set(TMP_V3[2], z, z, z);
@@ -57,12 +57,12 @@ export class LinearSpace3 {
     return new LinearSpace3(vx, vy, vz);
   }
 
-  static fromValues( m00: float, m01: float, m02: float,
-                     m10: float, m11: float, m12: float,
-                     m20: float, m21: float, m22: float): LinearSpace3 {
-    const vx = vec3.set(vec3.create(), m00,m10,m20);
-    const vy = vec3.set(vec3.create(), m01,m11,m21);
-    const vz = vec3.set(vec3.create(), m02,m12,m22);
-    return new LinearSpace3(vx,vy,vz);
+  static fromValues(m00: float, m01: float, m02: float,
+    m10: float, m11: float, m12: float,
+    m20: float, m21: float, m22: float): LinearSpace3 {
+    const vx = vec3.set(vec3.create(), m00, m10, m20);
+    const vy = vec3.set(vec3.create(), m01, m11, m21);
+    const vz = vec3.set(vec3.create(), m02, m12, m22);
+    return new LinearSpace3(vx, vy, vz);
   }
 }
