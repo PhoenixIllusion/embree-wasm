@@ -33,6 +33,22 @@ set(EXTRA_HEADERS
   ${CMAKE_CURRENT_SOURCE_DIR}/_h/function_ptrs.h
 )
 
+
+set(MINIMAL_EMBREE 0 CACHE BOOL "Limit Embree to just triangle intersection" FORCE)
+
+# Enable multi threading
+if (MINIMAL_EMBREE)
+  set(EMBREE_FILTER_FUNCTION OFF CACHE BOOL "" FORCE)
+  set(EMBREE_GEOMETRY_QUAD OFF CACHE BOOL "" FORCE)
+  set(EMBREE_GEOMETRY_CURVE OFF CACHE BOOL "" FORCE)
+  set(EMBREE_GEOMETRY_SUBDIVISION OFF CACHE BOOL "" FORCE)
+  set(EMBREE_GEOMETRY_INSTANCE OFF CACHE BOOL "" FORCE)
+  set(EMBREE_GEOMETRY_INSTANCE_ARRAY OFF CACHE BOOL "" FORCE)
+  set(EMBREE_GEOMETRY_USER OFF CACHE BOOL "" FORCE)
+  set(EMBREE_GEOMETRY_POINT OFF CACHE BOOL "" FORCE)
+endif()
+
+
 # Include Embree
 include(FetchContent)
 FetchContent_Declare(embree
@@ -49,6 +65,8 @@ set(FLAGS_SSE2 "-msse -msse2")
 FetchContent_MakeAvailable(embree)
 
 set(EMBREE_INCLUDE ${embree_SOURCE_DIR}/include)
+set(EMBREE_KERNELS ${embree_SOURCE_DIR}/kernels)
+set(EMBREE_COMMON ${embree_SOURCE_DIR}/common)
 set(EMBREE_STATIC_LIBS
   ${embree_BINARY_DIR}/libembree4.a
   ${embree_BINARY_DIR}/liblexers.a
@@ -90,7 +108,9 @@ set(EMCC_ARGS
   -msse2 -msimd128 -std=c++17
   -sEXPORTED_FUNCTIONS=[_malloc,_free]
   -I ${CMAKE_CURRENT_SOURCE_DIR}
+  -I ${EMBREE_KERNELS}
   -I ${EMBREE_INCLUDE}
+  -I ${EMBREE_COMMON}
   -include ${CMAKE_CURRENT_SOURCE_DIR}/embree_idl.h
   -s EXPORTED_FUNCTIONS=_memalign,_malloc,_free
 )
@@ -110,7 +130,9 @@ set(EMCC_GLUE_ARGS
   -c
   -I .
   ${MULTI_THREADED_FLAG}
+  -I ${EMBREE_KERNELS}
   -I ${EMBREE_INCLUDE}
+  -I ${EMBREE_COMMON}
   -include ${CMAKE_CURRENT_SOURCE_DIR}/embree_idl.h
   -Wall
   -msse2 -msimd128 -std=c++17)
@@ -148,6 +170,9 @@ add_custom_target(Embree-Wasm-generated ALL DEPENDS ${EMBREE_IDL} ${GEN_HEADER} 
 add_custom_command(
   OUTPUT glue.cpp glue.js
   COMMAND ${PYTHON} ${WEBIDL_BINDER_SCRIPT} ${EMBREE_IDL} glue
+#Remove getter/setter cases where a property is called 'ptr' given this is an internal value to IDL binder
+  COMMAND grep -v ".prototype, 'ptr'," glue.js > _glue.js 
+  COMMAND mv _glue.js glue.js
   DEPENDS ${EMBREE_IDL} 
   COMMENT "Generating WebIDL bindings"
   VERBATIM)

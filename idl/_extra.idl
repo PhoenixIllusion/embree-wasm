@@ -13,20 +13,7 @@
 	[Value] static RTCOccludedFunctionN getRTCOccludedFunctionN();
 
 
-	static void tileIntersect1(float cam_x, float cam_y, float cam_z, Scene scene, RTCRayHit rayhit,
-            float width, float height,
-            float p0_x, float p0_y, float p0_z,
-            float d10_x, float d10_y, float d10_z,
-            float d20_x, float d20_y, float d20_z,
-            long d_x, long d_width, long d_y, long d_height,
-            any dest, long rayhit_offset, long rayhit_len);	
-	static void tileIntersect4(float cam_x, float cam_y, float cam_z, Scene scene, RTCRayHit4 rayhit,
-            float width, float height,
-            float p0_x, float p0_y, float p0_z,
-            float d10_x, float d10_y, float d10_z,
-            float d20_x, float d20_y, float d20_z,
-            long d_x, long d_width, long d_y, long d_height,
-            any dest, long rayhit_offset, long rayhit_len, ValidMask mask);
-
       static void intersect1M(Scene scene, any rayhit, unsigned short M, optional RTCIntersectArguments args);
       static void occluded1M(Scene scene, any ray, unsigned short M, optional RTCOccludedArguments args);
+      static void intersect4M(Scene scene, any rayhit, unsigned short M, optional RTCIntersectArguments args);
+      static void occluded4M(Scene scene, any ray, unsigned short M, optional RTCOccludedArguments args);

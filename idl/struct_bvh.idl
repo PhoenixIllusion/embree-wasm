@@ -1,0 +1,133 @@
+
+[NoDelete]
+interface Vec3fa {
+  attribute float x;
+  attribute float y;
+  attribute float z;
+};
+
+[NoDelete]
+interface BBox3fa {
+  [Value] attribute Vec3fa lower;
+  [Value] attribute Vec3fa upper;
+};
+
+[NoDelete]
+interface BaseNode4 {
+  [Ref] NodeRef4 child(unsigned long i);
+};
+
+[NoDelete]
+interface AABBNode4 {
+  [Value] BBox3fa bounds(unsigned long i);
+  [Value] BBox3fa bounds();
+};
+ AABBNode4 implements BaseNode4;
+
+[NoDelete]
+interface AABBNode4MB {
+  [Value] BBox3fa bounds(unsigned long i);
+  [Value] BBox3fa bounds();
+};
+AABBNode4MB implements BaseNode4;
+
+[NoDelete]
+interface OBBNode4 {
+};
+OBBNode4 implements BaseNode4;
+
+[NoDelete]
+interface OBBNodeMB4 {
+};
+OBBNodeMB4 implements BaseNode4;
+[NoDelete]
+interface QAABBNode4 {
+  [Value] BBox3fa bounds(unsigned long i);
+};
+QAABBNode4 implements BaseNode4;
+
+[NoDelete]
+interface vfloat4 {
+  [Operator="[]"] float get(unsigned long i);
+};
+
+[NoDelete]
+interface Vec3vf4 {
+  [Value] attribute vfloat4 x;
+  [Value] attribute vfloat4 y;
+  [Value] attribute vfloat4 z;
+};
+
+[NoDelete]
+interface Triangle4v {
+  unsigned long size();
+  unsigned long geomID(unsigned long i);
+  unsigned long primID(unsigned long i);
+  [Value] attribute Vec3vf4 v0;
+  [Value] attribute Vec3vf4 v1;
+  [Value] attribute Vec3vf4 v2;
+};
+
+[NoDelete]
+interface NodeRef4 {
+   static readonly attribute unsigned long byteAlignment;
+   static readonly attribute unsigned long byteNodeAlignment;
+
+   static readonly attribute unsigned long barrier_mask;
+
+   static readonly attribute unsigned long align_mask;
+   static readonly attribute unsigned long items_mask;
+
+   static readonly attribute unsigned long tyAABBNode;
+   static readonly attribute unsigned long tyAABBNodeMB;
+   static readonly attribute unsigned long tyAABBNodeMB4D;
+   static readonly attribute unsigned long tyOBBNode;
+   static readonly attribute unsigned long tyOBBNodeMB;
+   static readonly attribute unsigned long tyQuantizedNode;
+   static readonly attribute unsigned long tyLeaf;
+  
+   static readonly attribute unsigned long emptyNode;
+
+   static readonly attribute unsigned long invalidNode;
+   static readonly attribute unsigned long popRay;
+
+   static readonly attribute unsigned long maxLeafBlocks;
+
+  [Const] boolean isBarrier();
+  [Const] unsigned long isLeaf();
+  [Const] long type();
+  [Const] long isAABBNode();
+  [Const] long isAABBNodeMB();
+  [Const] long isOBBNode();
+  [Const] long isOBBNodeMB();
+  [Const] long isQuantizedNode();
+
+  BaseNode4 baseNode();
+  attribute unsigned long ptr;
+};
+
+[NoDelete]
+interface PrimitiveType {
+  [Const] DOMString name();
+};
+
+[NoDelete]
+interface BVH4 {
+   static readonly attribute unsigned long byteAlignment;
+   static readonly attribute unsigned long byteNodeAlignment;
+   static readonly attribute unsigned long emptyNode;
+   static readonly attribute unsigned long invalidNode;
+   static readonly attribute unsigned long popRay;
+   static readonly attribute unsigned long maxBuildDepth;
+   static readonly attribute unsigned long maxDepth;
+   static readonly attribute unsigned long maxLeafBlocks;
+
+
+  [Const] readonly attribute PrimitiveType primTy;
+
+  [Value] attribute NodeRef4 root;
+
+  attribute unsigned long numPrimitives;
+  attribute unsigned long numVertices;
+};
+

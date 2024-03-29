@@ -176,3 +176,16 @@
           rtcOccluded1(scene, ray[i], args);
         }
       }
+
+      static void intersect4M(RTCScene scene, void * _rayhit, unsigned short M, struct RTCIntersectArguments* args RTC_OPTIONAL_ARGUMENT) {
+        struct RTCRayHit** rayhit = (struct RTCRayHit**)_rayhit;
+        for(int i = 0; i < M; i++) {
+          rtcIntersect1(scene, rayhit[i], args);
+        }
+      }
+      static void occluded4M(RTCScene scene, void* _ray, unsigned short M, struct RTCOccludedArguments* args RTC_OPTIONAL_ARGUMENT) {
+        struct RTCRay** ray = (struct RTCRay**)_ray;
+        for(int i = 0; i < M; i++) {
+          rtcOccluded1(scene, ray[i], args);
+        }
+      }

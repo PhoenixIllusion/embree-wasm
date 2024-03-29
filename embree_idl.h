@@ -1,19 +1,23 @@
+#define TASKING_INTERNAL 1
 #include <emscripten.h>
 #include <emscripten/bind.h>
 #include <embree4/rtcore.h>
+#include <sys/vector.h>
+#include <math/vec2.h>
+#include <math/vec3.h>
+#include <math/vec4.h>
+#include <math/bbox.h>
+#include <math/lbbox.h>
+#include <math/affinespace.h>
+#include <math/bbox.h>
 #include <malloc.h>
 #include <string.h>
 #include <unistd.h>
+RTC_NAMESPACE_USE
+#include <bvh/bvh.h>
+#include <geometry/trianglev.h>
 
-using VoidArray = void *;
-using FloatPtr = float;
-using SceneArray = RTCScene;
-using Device = RTCDeviceTy;
-using Scene = RTCSceneTy;
-using Geometry = RTCGeometryTy;
-using Buffer = RTCBufferTy;
-using ValidMask = int;
-using BVH = RTCBVHTy;
+#include "embree_types.h"
 
 using namespace emscripten;
 

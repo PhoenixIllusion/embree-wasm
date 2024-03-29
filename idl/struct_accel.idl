@@ -1,0 +1,70 @@
+
+enum AccelData_Type {
+  "ACCEL_TYP_UNKNOWN",
+  "ACCEL_TY_ACCELN",
+  "ACCEL_TY_ACCEL_INSTANCE",
+  "ACCEL_TY_BVH4",
+  "ACCEL_TY_BVH8",
+  "ACCEL_TY_GPU"
+};
+
+[NoDelete]
+interface AccelData {
+  [Value] BBox3fa getBounds();
+  [Value] BBox3fa getBounds(float f);
+  boolean isEmpty();
+  attribute AccelData_Type type;
+};
+
+[NoDelete]
+interface AccelCollider {
+  [Const] attribute DOMString name;
+};
+[NoDelete]
+interface AccelIntersector1 {
+  [Const] attribute DOMString name;
+};
+[NoDelete]
+interface AccelIntersector4 {
+  [Const] attribute DOMString name;
+};
+[NoDelete]
+interface AccelIntersector8 {
+  [Const] attribute DOMString name;
+};
+[NoDelete]
+interface AccelIntersector16 {
+  [Const] attribute DOMString name;
+};
+
+
+[NoDelete]
+interface AccelIntersectors {
+  attribute AccelData ptr;
+  [Value] attribute AccelIntersector1 intersector1;
+  [Value] attribute AccelIntersector4 intersector4;
+  [Value] attribute AccelIntersector4 intersector4_filter;
+  [Value] attribute AccelIntersector4 intersector4_nofilter;
+  [Value] attribute AccelIntersector8 intersector8;
+  [Value] attribute AccelIntersector8 intersector8_filter;
+  [Value] attribute AccelIntersector8 intersector8_nofilter;
+  [Value] attribute AccelIntersector16 intersector16;
+  [Value] attribute AccelIntersector16 intersector16_filter;
+  [Value] attribute AccelIntersector16 intersector16_nofilter;
+};
+
+[NoDelete]
+interface Accel: AccelData {
+  [Value] attribute AccelIntersectors intersectors;
+};
+
+[NoDelete]
+interface VectorAccel {
+  Accel at(unsigned long i);
+  unsigned long size();
+};
+
+[NoDelete]
+interface AccelN: Accel {
+  [Value] attribute VectorAccel accels;
+};
