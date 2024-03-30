@@ -3,7 +3,7 @@
 interface RTCGrid {
   attribute unsigned long startVertexID;
   attribute unsigned long stride;
-  attribute unsigned long width;
+  attribute unsigned short width;
   attribute unsigned short height;
 };
 
