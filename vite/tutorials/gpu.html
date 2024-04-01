@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Embree: Forest</title>
+  <meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0" />
+<style>
+  canvas { 
+      image-rendering: pixelated;
+      width: 600px;
+      height: 600px;
+      border: 1px solid red;
+  }
+</style>
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+  <canvas id="canvas-dbg"></canvas>
+  <br />
+  <div id="log">  </div>
+</body>
+<script type="module" src="../src/tutorials/gpu/gpu_device.ts">
+</script>
+</html>

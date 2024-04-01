@@ -17,6 +17,7 @@
   "type": "module",
   "dependencies": {
     "@types/gl-matrix": "3.2.0",
-    "noise-ts": "1.0.1"
+    "noise-ts": "1.0.1",
+    "twgl.js": "5.5.4"
   }
 }
