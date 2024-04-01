@@ -25,13 +25,10 @@ export class ISPCCamera {
     return ray;
   }
   setRayDir(out: vec3, x: uint, y: uint): vec3 {
-    const px = vec3.set(TMP_V3[0], x, x, x);
-    const py = vec3.set(TMP_V3[1], y, y, y);
     const l = this.xfm.l;
 
-    vec3.mul(px, px, l.vx);
-    vec3.mul(py, py, l.vy);
-    const dir = vec3.add(out, px, py);
+    vec3.scale(out,l.vx, x);
+    const dir = vec3.scaleAndAdd(out, out, l.vy, y);
     vec3.add(dir, dir, l.vz);
     vec3.normalize(dir, dir);
     return dir;

@@ -2,12 +2,46 @@ import { vec3 } from 'gl-matrix';
 import { GpuDevice } from '../../gpu/device'
 import { Camera } from '../common/tutorial/camera';
 import { BVH_DATA } from './bvh';
+import { TriangleDemo } from './tutorial_data';
+import { clamp } from '../common/math/math';
 
+const TIMES = {
+  EMBREE_START: 0,
+  RAY_SET: 0,
+  SET_RAYBUFFER: 0,
+  INTERSECT: 0,
+  READ_RAYHIT: 0,
+  SHADOW_SET: 0,
+  SET_SHADOW_BUFFER: 0,
+  OCCLUDE: 0,
+  READ_SHADOW_HIT: 0,
+  RENDER: 0,
+  TOTAL: 0
+}
 
-/*
+TIMES.TOTAL = performance.now();
+const CANVAS_SIZE = 800;
+const CANVAS_WIDTH = CANVAS_SIZE;
+const CANVAS_HEIGHT = CANVAS_SIZE;
+
+TIMES.EMBREE_START = performance.now();
+
+const canvas = document.getElementById('canvas')! as HTMLCanvasElement;
+const canvasDbg = document.getElementById('canvas-dbg')! as HTMLCanvasElement;
+canvasDbg.width = CANVAS_WIDTH
+canvasDbg.height = CANVAS_HEIGHT
+const ctx = canvasDbg.getContext('2d')!;
+const pix = ctx.getImageData(0,0, CANVAS_WIDTH, CANVAS_HEIGHT);
+pix.data.fill(255);
+
+const SHADOW_ENABLED = true;
 const tutorialApp = new TriangleDemo();
 tutorialApp.device_init();
 
+TIMES.RAY_SET = performance.now();
+TIMES.EMBREE_START-= TIMES.RAY_SET;
+
+/*
 const bvhData = tutorialApp.getBvhData();
 //*/
 
@@ -18,54 +52,149 @@ for(let i=0;i<bvhData.length;i+=4){
 }
 console.log(str.join(',\n'));
 
-const CANVAS_SIZE = 400;
-const CANVAS_WIDTH = CANVAS_SIZE;
-const CANVAS_HEIGHT = CANVAS_SIZE;
 
-const canvas = document.getElementById('canvas')! as HTMLCanvasElement;
-const canvasDbg = document.getElementById('canvas-dbg')! as HTMLCanvasElement;
-const device = new GpuDevice(CANVAS_SIZE, canvas);
+const device = new GpuDevice(CANVAS_SIZE, canvas, 1<<(Math.ceil(Math.log2(Math.sqrt(bvhData.length/4)))));
 
-const BUFFER_SIZE = CANVAS_WIDTH*CANVAS_HEIGHT*4;
-const tris = new Float32Array(BUFFER_SIZE);
-const bvh = new Float32Array(BUFFER_SIZE);
-bvh.set(bvhData);
+device.bvhBuffer.set(bvhData);
 
-const rayOrig = new Float32Array(BUFFER_SIZE);
-const rayDir = new Float32Array(BUFFER_SIZE);
+const rayOrig = device.raysOrigBuffer;
+const rayDir = device.raysDirBuffer;
 
 const camera = new Camera();
 
-vec3.set(camera.from, 1.5, 1.5, -1.5);
+vec3.set(camera.from, 2.5, 1.5, -3.5);
 vec3.set(camera.to, 0, 0, 0);
 const ispCam = camera.getISPCCamera(CANVAS_WIDTH,CANVAS_HEIGHT);
 
 let i=0;
+const dir = vec3.create();
 for(let y=0; y<CANVAS_HEIGHT;y++)
 for(let x=0; x<CANVAS_WIDTH; x++) {
   const idx = i*4;
-  const orig = rayOrig.subarray(idx, (i+1)*4);
-  orig[3] = 1e29;
-  const dir = rayDir.subarray(idx, (i+1)*4);
-  dir[4] = 0;
-  vec3.copy(orig, ispCam.xfm.p);
+  rayOrig.set(ispCam.xfm.p, idx);
+  rayOrig[idx+3] = 1e29;
   ispCam.setRayDir(dir, x, y);
+  rayDir.set(dir, idx);
+  dir[idx+3] = 0;
   i++;
 }
 
-device.setTriangleBuffer(tris);
-device.setBVHBuffer(bvh);
-device.setRayBuffer(rayOrig, rayDir);
 
-device.compute();
+TIMES.SET_RAYBUFFER = performance.now();
+TIMES.RAY_SET-= TIMES.SET_RAYBUFFER;
+
+
+device.setTriangleBuffer();
+device.setBVHBuffer();
+device.setRayBuffer();
+
+TIMES.INTERSECT = performance.now();
+TIMES.SET_RAYBUFFER-= TIMES.INTERSECT;
+
+device.intersect();
 //device.computeJS(canvasDbg);
 
-/*
-const buffer0 = new Float32Array(64*4);
-const buffer1 = new Float32Array(64*4);
+TIMES.READ_RAYHIT = performance.now();
+TIMES.INTERSECT-= TIMES.READ_RAYHIT;
 
-device.readBuffer([buffer0, buffer1]);
+const hitResult = new Float32Array(CANVAS_WIDTH*CANVAS_HEIGHT*4);
+const geoPrimResult = new Float32Array(CANVAS_WIDTH*CANVAS_HEIGHT*4);
+const hitShadow = new Float32Array(CANVAS_WIDTH*CANVAS_HEIGHT*4);
+const geoPrimShadow = new Float32Array(CANVAS_WIDTH*CANVAS_HEIGHT*4);
+device.readBuffer([hitResult,geoPrimResult]);
 
-console.log('0',buffer0);
-console.log('1',buffer1);
-*/
+
+TIMES.SHADOW_SET = performance.now();
+TIMES.READ_RAYHIT-= TIMES.SHADOW_SET;
+
+const Ng = vec3.create();
+const color = vec3.create();
+const diffuse = vec3.create();
+const lightDir = vec3.create();
+vec3.normalize(lightDir, vec3.set(lightDir, -1, -1, -1));
+
+let shadowCount = 0; 
+for(let y=0;y<CANVAS_HEIGHT;y++)
+for(let x=0;x<CANVAS_WIDTH;x++) {
+    const idx = (x + y * CANVAS_WIDTH)*4;
+    const orig = rayOrig.subarray(idx, idx+4);
+    const dir = rayDir.subarray(idx, idx+4);
+    const tfar = hitResult[idx+3];
+    const geomID = geoPrimResult[idx];
+
+    vec3.set(color, 0, 0, 0);
+    if (geomID != -1) { // Floor has no colors, so can't sample
+      if (SHADOW_ENABLED) {
+        shadowCount++;
+        orig[3] = 1e29;
+        dir[3] = 0.001;
+
+        vec3.scaleAndAdd(orig, ispCam.xfm.p, dir, tfar);
+        vec3.negate(dir, lightDir);
+      }
+    } else {
+      orig[3] = -1;
+    }
+}
+
+
+TIMES.SET_SHADOW_BUFFER = performance.now();
+TIMES.SHADOW_SET-= TIMES.SET_SHADOW_BUFFER;
+
+if (SHADOW_ENABLED) {
+  device.setRayBuffer();
+
+  TIMES.OCCLUDE = performance.now();
+  TIMES.SET_SHADOW_BUFFER-= TIMES.OCCLUDE;
+
+  device.intersect();
+
+  TIMES.READ_SHADOW_HIT = performance.now();
+  TIMES.OCCLUDE-= TIMES.READ_SHADOW_HIT;
+
+  device.readBuffer([hitShadow,geoPrimShadow]);
+
+  TIMES.RENDER = performance.now();
+  TIMES.READ_SHADOW_HIT-= TIMES.RENDER;
+
+  for(let y=0;y<canvas.height;y++)
+  for(let x=0;x<canvas.width;x++) {
+    const idx = (x + y * CANVAS_WIDTH)*4;
+    const [Ng_x, Ng_y, Ng_z, tfar] = hitResult.subarray(idx, idx+4);
+
+    const geomIDs = geoPrimShadow[idx];
+    const geomID = geoPrimResult[idx];
+    const primID = geoPrimResult[idx+1];
+
+    if (geomID >= 0){
+      vec3.copy(diffuse, tutorialApp.data.face_colors[primID])
+      if(geomIDs < 0) {
+        vec3.set(Ng, Ng_x, Ng_y, Ng_z);
+        const d = clamp(-vec3.dot(lightDir, Ng), 0, 1);
+        vec3.scale(color, diffuse, d + .5);
+      } else {
+        vec3.scale(color, diffuse, .5);
+      }
+      pix.data[idx] = 255 * color[0]
+      pix.data[idx+1] = 255 * color[1]
+      pix.data[idx+2] = 255 * color[2]
+    } else {
+      pix.data[idx] = 0
+      pix.data[idx+1] = 0
+      pix.data[idx+2] = 0
+    }
+  }
+}
+
+TIMES.RENDER-= performance.now();
+TIMES.TOTAL -= performance.now();
+
+ctx.putImageData(pix, 0,0)
+
+let log: string[] = ['<table>'];
+Object.entries(TIMES).forEach(([key,val])=> {
+  log.push(`<tr><td>${key}</td><td>${-val}</td></tr>`);
+})
+log.push('</table>')
+const logEle = document.getElementById('log')!;
+logEle.innerHTML = log.join('');

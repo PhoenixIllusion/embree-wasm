@@ -1,11 +1,18 @@
 import * as twgl from 'twgl.js'
-import vs from './shader/vertex.glsl?raw'
-import fs from './shader/fragment.glsl?raw';
+import vs from './shader/vertex.glsl.vs?raw'
+import fs from './shader/fragment.glsl.fs?raw';
 
 import * as JsShader from './shader/fragment_alg'; 
 import { vec4 } from 'gl-matrix';
 
 type SamplerKey = 'uTrianglesSampler'|'uBVHSampler'|'uRayOrigSampler'|'uRayDirSampler'
+
+type Uniforms = {
+  [key in SamplerKey]: WebGLTexture;
+} & {
+  u_rootID: number;
+  uOcclude: boolean;
+}
 
 export class GpuDevice {
 
@@ -15,15 +22,17 @@ export class GpuDevice {
   frameBufferInfo: twgl.FramebufferInfo;
 
   textures: Record<SamplerKey, WebGLTexture>;
+  uniforms: Uniforms;
 
   trianglesBuffer: Float32Array;
   bvhBuffer: Float32Array;
   raysOrigBuffer: Float32Array;
   raysDirBuffer: Float32Array;
 
-  floatFormat: twgl.TextureOptions;
+  floatFormatRay: twgl.TextureOptions;
+  floatFormatData: twgl.TextureOptions;
 
-  constructor(private size: number, private canvas: HTMLCanvasElement) {
+  constructor(private size: number, canvas: HTMLCanvasElement, dataSize: number) {
     canvas.width = size;
     canvas.height = size;
     const gl = this.gl = canvas.getContext('webgl2')!;
@@ -40,54 +49,59 @@ export class GpuDevice {
       a_position: [-1, -1, 0, 1, -1, 0, -1, 1, 0, -1, 1, 0, 1, -1, 0, 1, 1, 0],
     };
     const bufferInfo = this.bufferInfo = twgl.createBufferInfoFromArrays(gl, arrays);
-    const floatFormat = this.floatFormat = { format: gl.RGBA, internalFormat: gl.RGBA32F, type: gl.FLOAT, min: gl.NEAREST, wrap: gl.CLAMP_TO_EDGE, width: size, height: size};
+    const floatFormatRay = this.floatFormatRay = { format: gl.RGBA, internalFormat: gl.RGBA32F, type: gl.FLOAT, min: gl.NEAREST, wrap: gl.CLAMP_TO_EDGE, width: size, height: size};
+    const floatFormatData = this.floatFormatData = { format: gl.RGBA, internalFormat: gl.RGBA32F, type: gl.FLOAT, min: gl.NEAREST, wrap: gl.CLAMP_TO_EDGE, width: dataSize, height: dataSize};
 
-    this.trianglesBuffer = new Float32Array(size * size * 4);
-    this.bvhBuffer = new Float32Array(size * size * 4);
+    this.trianglesBuffer = new Float32Array(dataSize * dataSize * 4);
+    this.bvhBuffer = new Float32Array(dataSize * dataSize * 4);
     this.raysOrigBuffer = new Float32Array(size * size * 4);
     this.raysDirBuffer = new Float32Array(size * size * 4);
 
     this.textures = twgl.createTextures(gl, {
-      uTrianglesSampler: { ... floatFormat, src: this.trianglesBuffer },
-      uBVHSampler: { ... floatFormat, src: this.bvhBuffer },
-      uRayOrigSampler: { ... floatFormat, src: this.raysOrigBuffer },
-      uRayDirSampler: { ... floatFormat, src: this.raysDirBuffer }
+      uTrianglesSampler: { ... floatFormatData, src: this.trianglesBuffer },
+      uBVHSampler: { ... floatFormatData, src: this.bvhBuffer },
+      uRayOrigSampler: { ... floatFormatRay, src: this.raysOrigBuffer },
+      uRayDirSampler: { ... floatFormatRay, src: this.raysDirBuffer }
     }) as Record<SamplerKey, WebGLTexture>;
 
-    const uniforms = {
+    const uniforms = this.uniforms = {
       ... this.textures,
-      u_rootID: 0
+      u_rootID: 0,
+      uOcclude: false
     }
     gl.useProgram(programInfo.program);
     twgl.setBuffersAndAttributes(gl, programInfo, bufferInfo);
     twgl.setUniforms(programInfo, uniforms);
 
     const attachments = [
-      floatFormat,
-      floatFormat,
+      floatFormatRay,
+      floatFormatRay,
     ];
-    //this.frameBufferInfo = twgl.createFramebufferInfo(gl, attachments, size, size);
+    this.frameBufferInfo = twgl.createFramebufferInfo(gl, attachments, size, size);
     
   }
 
-  setTriangleBuffer(buffer: Float32Array) {
-    this.trianglesBuffer.set(buffer);
-    twgl.setTextureFromArray(this.gl, this.textures.uTrianglesSampler, this.trianglesBuffer, this.floatFormat)
+  setTriangleBuffer() {
+    twgl.setTextureFromArray(this.gl, this.textures.uTrianglesSampler, this.trianglesBuffer, this.floatFormatData)
   }
 
-  setBVHBuffer(buffer: Float32Array) {
-    this.bvhBuffer.set(buffer);
-    twgl.setTextureFromArray(this.gl, this.textures.uBVHSampler, this.bvhBuffer, this.floatFormat)
+  setBVHBuffer() {
+    twgl.setTextureFromArray(this.gl, this.textures.uBVHSampler, this.bvhBuffer, this.floatFormatData)
     
   }
-  setRayBuffer(orig: Float32Array, dir: Float32Array) {
-    this.raysOrigBuffer.set(orig);
-    twgl.setTextureFromArray(this.gl, this.textures.uRayOrigSampler, this.raysOrigBuffer, {flipY: 1, ... this.floatFormat})
-    this.raysDirBuffer.set(dir);
-    twgl.setTextureFromArray(this.gl, this.textures.uRayDirSampler, this.raysDirBuffer, {flipY: 1, ... this.floatFormat})
+  setRayBuffer() {
+    twgl.setTextureFromArray(this.gl, this.textures.uRayOrigSampler, this.raysOrigBuffer, {flipY: 0, ... this.floatFormatRay})
+    twgl.setTextureFromArray(this.gl, this.textures.uRayDirSampler, this.raysDirBuffer, {flipY: 0, ... this.floatFormatRay})
 
   }
-  compute(): void {
+  intersect(): void {
+    this.uniforms.uOcclude = false;
+    twgl.setUniforms(this.programInfo, this.uniforms);
+    twgl.drawBufferInfo(this.gl, this.bufferInfo);
+  }
+  occlude(): void {
+    this.uniforms.uOcclude = true;
+    twgl.setUniforms(this.programInfo, this.uniforms);
     twgl.drawBufferInfo(this.gl, this.bufferInfo);
   }
 

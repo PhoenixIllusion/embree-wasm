@@ -7,9 +7,10 @@ uniform sampler2D uTrianglesSampler;
 uniform sampler2D uBVHSampler;
 uniform sampler2D uRayOrigSampler;
 uniform sampler2D uRayDirSampler;
+uniform bool uOcclude;
 
-//layout(location = 0) out vec4 outRayHit;
-//layout(location = 1) out vec4 outGeomPrim;
+layout(location = 0) out vec4 outRayHit;
+layout(location = 1) out vec4 outGeomPrim;
 
 float bvhTexSize;
 
@@ -146,6 +147,9 @@ vec4 TraverseBVH( float nodeId, inout vec4 rayOrigin, vec4 dir, inout vec3 norm)
     float nodeType = mod(cur.x, 16.);
     if(nodeType > 8.) {
       CheckTrianglev4(cur.x, rayOrigin, dir, result, norm);
+      if(uOcclude && result.x >=0.) {
+        return result;
+      }
     } else {
       CheckAABB(cur.x, rayOrigin.xyz, dir.w, rayOrigin.w, invDir);
     }
@@ -155,7 +159,7 @@ vec4 TraverseBVH( float nodeId, inout vec4 rayOrigin, vec4 dir, inout vec3 norm)
 }
 
 
-out vec4 out_color;
+//out vec4 out_color;
 
 void main() {
   bvhTexSize = float(textureSize(uBVHSampler, 0).x);  // size of mip 0
@@ -166,10 +170,16 @@ void main() {
   
   vec3 norm = vec3(-1.);
   float initialT = orig.w;
-  vec4 outGeomPrim = TraverseBVH(u_rootID, orig, dir, norm);
-  float t = orig.w;
-  vec4 outRayHit = vec4(norm, orig.w);
+  if(initialT >= 0.) {
+    outGeomPrim = TraverseBVH(u_rootID, orig, dir, norm);
+    outRayHit = vec4(norm, orig.w);
+  } else {
+    outGeomPrim = vec4(-1.);
+    outRayHit = vec4(-1.);
+  }
 
+/*
+  float t = orig.w;
   vec3 lightDir = normalize(vec3(-2,-1,-1));
   vec3 Ng = normalize(norm);
   float d = clamp(-dot(lightDir, Ng), 0., 1.);
@@ -181,4 +191,5 @@ void main() {
   } else {
     out_color = vec4(0,0,1,1);
   }
+  */
 }

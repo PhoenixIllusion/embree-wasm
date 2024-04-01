@@ -29,7 +29,7 @@ export class TriangleDemo extends TutorialApplication{
 
   protected interpolate!: Float32Array;
 
-  protected data!: TutorialData;
+  public data!: TutorialData;
 
   constructor() {
     super('GPUTriangleTutorial', [], 50, 50);
@@ -139,10 +139,6 @@ export class TriangleDemo extends TutorialApplication{
     RTC.commitScene(this.g_scene);
   }
   device_cleanup(): void {
-  }
-
-  renderPixelStandard(outPixel: vec4, x: number, y: number, width: number, height: number, time: number, camera: ISPCCamera): vec4 {
-    return outPixel;
   }
 
   getBvhRoot(): Embree.NodeRef4 {
@@ -311,5 +307,11 @@ export class TriangleDemo extends TutorialApplication{
     this.print_bvh4_triangle4v(this.getBvhRoot(), 0);
     this.encodeBvhData(this.getBvhRoot(), bvh);
     return bvh;
+  }
+
+
+  renderPixelStandard(outPixel: vec4, x: number, y: number, width: number, height: number, time: number, camera: ISPCCamera): vec4 {
+
+    return outPixel;
   }
 }

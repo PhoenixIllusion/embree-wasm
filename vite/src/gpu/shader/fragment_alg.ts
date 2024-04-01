@@ -225,8 +225,6 @@ function TraverseBVH( nodeId: float, rayOrigin: vec4, dir: vec3): vec4 {
 export let out_color = vec4.create();
 
 export function main(): void {
-  //outRayHit = texture(uRaySampler, v_texcoord);
-  //outGeomPrim = vec4(v_texcoord,0,0);
   bvhTexSize = float(textureSize(uBVHSampler, 0).x);  // size of mip 0
   const texelCoord: vec2 = ivec2(gl_FragCoord.x,gl_FragCoord.y);
 
