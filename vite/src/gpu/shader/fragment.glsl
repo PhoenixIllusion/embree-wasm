@@ -13,7 +13,7 @@ uniform sampler2D uRayDirSampler;
 
 float bvhTexSize;
 
-void TriangleIntersect( vec3 v0, vec3 v1, vec3 v2, inout vec4 rayOrigin, vec4 rayDirection, float geoID, float primID, inout vec4 result)
+void TriangleIntersect( vec3 v0, vec3 v1, vec3 v2, inout vec4 rayOrigin, vec4 rayDirection, float geoID, float primID, inout vec4 geoPrim, inout vec3 norm)
 {
 	vec3 edge1 = v1 - v0;
 	vec3 edge2 = v2 - v0;
@@ -29,7 +29,8 @@ void TriangleIntersect( vec3 v0, vec3 v1, vec3 v2, inout vec4 rayOrigin, vec4 ra
   }
   if(t < rayOrigin.w && t > rayDirection.w) {
     rayOrigin.w = t;
-    result = vec4(geoID, primID, u, v);
+    geoPrim = vec4(geoID, primID, u, v);
+    norm = cross(edge1, edge2);
   }
 }
 
@@ -98,14 +99,14 @@ void CheckAABB(float nodeId, vec3 rayOrigin, float tNear, float tFar, vec3 invDi
   }
 }
 
-void CheckTriangle(float triId, inout vec4 rayOrigin, vec4 dir, float geoID, float primID, inout vec4 result) {
+void CheckTriangle(float triId, inout vec4 rayOrigin, vec4 dir, float geoID, float primID, inout vec4 result, inout vec3 norm) {
     vec4 v0 = GetBVHData(triId+0.);
     vec4 v1 = GetBVHData(triId+1.);
     vec4 v2 = GetBVHData(triId+2.);
-    TriangleIntersect( v0.xyz, v1.xyz, v2.xyz, rayOrigin, dir, geoID, primID, result);
+    TriangleIntersect( v0.xyz, v1.xyz, v2.xyz, rayOrigin, dir, geoID, primID, result, norm);
 }
 
-void CheckTrianglev4(float nodeId, inout vec4 rayOrigin, vec4 dir, inout vec4 result) {
+void CheckTrianglev4(float nodeId, inout vec4 rayOrigin, vec4 dir, inout vec4 result, inout vec3 norm) {
   int nodeCount = int(mod(nodeId, 8.));
   float triIDs = nodeId/16.0;
 
@@ -113,22 +114,22 @@ void CheckTrianglev4(float nodeId, inout vec4 rayOrigin, vec4 dir, inout vec4 re
     vec4 geoIDs = GetBVHData(triIDs+12.0);
     vec4 primIDs = GetBVHData(triIDs+13.0);
     if(geoIDs.x >= 0.) {
-      CheckTriangle(triIDs, rayOrigin, dir, geoIDs.x, primIDs.x, result);
+      CheckTriangle(triIDs, rayOrigin, dir, geoIDs.x, primIDs.x, result, norm);
     }
     if(geoIDs.y >= 0.) {
-      CheckTriangle(triIDs+3., rayOrigin, dir, geoIDs.y, primIDs.y, result);
+      CheckTriangle(triIDs+3., rayOrigin, dir, geoIDs.y, primIDs.y, result, norm);
     }
     if(geoIDs.z >= 0.) {
-      CheckTriangle(triIDs+6., rayOrigin, dir, geoIDs.z, primIDs.z, result);
+      CheckTriangle(triIDs+6., rayOrigin, dir, geoIDs.z, primIDs.z, result, norm);
     }
     if(geoIDs.w >= 0.) {
-      CheckTriangle(triIDs+9., rayOrigin, dir, geoIDs.w, primIDs.w, result);
+      CheckTriangle(triIDs+9., rayOrigin, dir, geoIDs.w, primIDs.w, result, norm);
     }
     triIDs += 14.;
   }
 }
 
-vec4 TraverseBVH( float nodeId, inout vec4 rayOrigin, vec4 dir) {
+vec4 TraverseBVH( float nodeId, inout vec4 rayOrigin, vec4 dir, inout vec3 norm) {
   stackLevels[0] = vec2(nodeId, -1e30);
 
   vec3 invDir = 1./dir.xyz;
@@ -144,7 +145,7 @@ vec4 TraverseBVH( float nodeId, inout vec4 rayOrigin, vec4 dir) {
       continue;
     float nodeType = mod(cur.x, 16.);
     if(nodeType > 8.) {
-      CheckTrianglev4(cur.x, rayOrigin, dir, result);
+      CheckTrianglev4(cur.x, rayOrigin, dir, result, norm);
     } else {
       CheckAABB(cur.x, rayOrigin.xyz, dir.w, rayOrigin.w, invDir);
     }
@@ -157,24 +158,24 @@ vec4 TraverseBVH( float nodeId, inout vec4 rayOrigin, vec4 dir) {
 out vec4 out_color;
 
 void main() {
-  //outRayHit = texture(uRaySampler, v_texcoord);
-  //outGeomPrim = vec4(v_texcoord,0,0);
   bvhTexSize = float(textureSize(uBVHSampler, 0).x);  // size of mip 0
   ivec2 texelCoord = ivec2(gl_FragCoord.xy);
 
   vec4 orig = texelFetch(uRayOrigSampler, texelCoord, 0);
   vec4 dir = texelFetch(uRayDirSampler, texelCoord, 0);
   
+  vec3 norm = vec3(-1.);
   float initialT = orig.w;
-
-  vec4 result = TraverseBVH(u_rootID, orig, dir);
-  
-  //vec4 result = vec4(-1.,-1.,-1.,-1.);
-  //CheckTrianglev4(1041., orig, dir.xyz, result);
+  vec4 outGeomPrim = TraverseBVH(u_rootID, orig, dir, norm);
   float t = orig.w;
+  vec4 outRayHit = vec4(norm, orig.w);
+
+  vec3 lightDir = normalize(vec3(-2,-1,-1));
+  vec3 Ng = normalize(norm);
+  float d = clamp(-dot(lightDir, Ng), 0., 1.);
 
   if(t < initialT) {
-    out_color = vec4(t/5.,t/5.,0,1);
+    out_color = vec4(d/2.+.5,d/2.+.5,0,1);
   } else if (t < 0. ) {
     out_color = vec4(1,0,0,1);
   } else {
