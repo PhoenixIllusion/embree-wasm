@@ -7,6 +7,7 @@ import { clamp } from '../common/math/math';
 
 const TIMES = {
   EMBREE_START: 0,
+  GPU_SETUP: 0,
   RAY_SET: 0,
   SET_RAYBUFFER: 0,
   INTERSECT: 0,
@@ -38,8 +39,8 @@ const SHADOW_ENABLED = true;
 const tutorialApp = new TriangleDemo();
 tutorialApp.device_init();
 
-TIMES.RAY_SET = performance.now();
-TIMES.EMBREE_START-= TIMES.RAY_SET;
+TIMES.GPU_SETUP = performance.now();
+TIMES.EMBREE_START-= TIMES.GPU_SETUP;
 
 /*
 const bvhData = tutorialApp.getBvhData();
@@ -54,6 +55,8 @@ console.log(str.join(',\n'));
 
 
 const device = new GpuDevice(CANVAS_SIZE, canvas, 1<<(Math.ceil(Math.log2(Math.sqrt(bvhData.length/4)))));
+TIMES.RAY_SET = performance.now();
+TIMES.GPU_SETUP-= TIMES.RAY_SET;
 
 device.bvhBuffer.set(bvhData);
 
