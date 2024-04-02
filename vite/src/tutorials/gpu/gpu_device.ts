@@ -1,7 +1,6 @@
 import { vec3 } from 'gl-matrix';
 import { GpuDevice } from '../../gpu/device'
 import { Camera } from '../common/tutorial/camera';
-import { BVH_DATA } from './bvh';
 import { TriangleDemo } from './tutorial_data';
 import { clamp } from '../common/math/math';
 
@@ -42,11 +41,7 @@ tutorialApp.device_init();
 TIMES.GPU_SETUP = performance.now();
 TIMES.EMBREE_START-= TIMES.GPU_SETUP;
 
-/*
 const bvhData = tutorialApp.getBvhData();
-//*/
-
-const bvhData = BVH_DATA;
 const str: string[] = [];
 for(let i=0;i<bvhData.length;i+=4){
    str.push(`${bvhData[i]},${bvhData[i+1]},${bvhData[i+2]},${bvhData[i+3]}`);
@@ -126,7 +121,7 @@ for(let x=0;x<CANVAS_WIDTH;x++) {
     const geomID = geoPrimResult[idx];
 
     vec3.set(color, 0, 0, 0);
-    if (geomID != -1) { // Floor has no colors, so can't sample
+    if (geomID != -1) {
       if (SHADOW_ENABLED) {
         shadowCount++;
         orig[3] = 1e29;

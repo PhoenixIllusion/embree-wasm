@@ -1,3 +1,10 @@
+/*
+  BVH Traversal Shader based on:
+  * https://github.com/erichlof/THREE.js-PathTracing-Renderer/
+  * https://github.com/jbikker/bvh_article/
+  * https://github.com/embree/embree/blob/master/kernels/bvh/bvh_intersector1.cpp
+*/
+
 import * as twgl from 'twgl.js'
 import vs from './shader/vertex.glsl.vs?raw'
 import fs from './shader/fragment.glsl.fs?raw';
