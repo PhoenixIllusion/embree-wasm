@@ -7,4 +7,4 @@ docker run \
   --mount type=bind,source="$(pwd)",target=/src/ \
   -w /src/ \
   emscripten/emsdk:3.1.56 \
-  /bin/bash build-using-local.sh
+  /bin/bash build-using-local.sh -DCMAKE_BUILD_TYPE=Release

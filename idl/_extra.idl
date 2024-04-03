@@ -13,7 +13,7 @@
 	[Value] static RTCOccludedFunctionN getRTCOccludedFunctionN();
 
 
-      static void intersect1M(Scene scene, any rayhit, unsigned short M, optional RTCIntersectArguments args);
-      static void occluded1M(Scene scene, any ray, unsigned short M, optional RTCOccludedArguments args);
-      static void intersect4M(Scene scene, any rayhit, unsigned short M, optional RTCIntersectArguments args);
-      static void occluded4M(Scene scene, any ray, unsigned short M, optional RTCOccludedArguments args);
+	static void intersect1M(Scene scene, any rayhit, unsigned short M, optional RTCIntersectArguments args);
+	static void occluded1M(Scene scene, any ray, unsigned short M, optional RTCOccludedArguments args);
+	static void intersect4M(ValidMask valid, Scene scene, any rayhit, unsigned short M, optional RTCIntersectArguments args);
+	static void occluded4M(ValidMask valid, Scene scene, any ray, unsigned short M, optional RTCOccludedArguments args);

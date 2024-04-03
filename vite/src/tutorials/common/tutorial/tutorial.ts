@@ -10,6 +10,7 @@ import { float, uint } from "../types";
 import { Camera } from "./camera";
 
 import { Embree } from '../embree';
+import { PerfLogger } from "../perf";
 
 export abstract class TutorialApplication extends DefaultRenderer {
 
@@ -32,13 +33,15 @@ export abstract class TutorialApplication extends DefaultRenderer {
     context.putImageData(pixels, 0, 0);
   }
 
-  async runWorkerQueue(canvas: HTMLCanvasElement, time: float, queue: RenderQueue) {
+  async runWorkerQueue(canvas: HTMLCanvasElement, time: float, queue: RenderQueue, perf: PerfLogger) {
     const { width, height } = canvas;
     const numTilesX = Math.floor((canvas.width + this.TILE_SIZE_X - 1) / this.TILE_SIZE_X);
     const numTilesY = Math.floor((canvas.height + this.TILE_SIZE_Y - 1) / this.TILE_SIZE_Y);
     const context = canvas.getContext('2d')!;
     const imageData: { x: number, y: number, pixels: ImageData }[] = [];
     const transferBuffers: ArrayBuffer[] = [];
+
+    perf.log('Alloc Canvas', () => {
     for (let y = 0; y < height; y += this.TILE_SIZE_Y)
       for (let x = 0; x < width; x += this.TILE_SIZE_X) {
         const tileW = Math.min(this.TILE_SIZE_X, width - x);
@@ -46,19 +49,26 @@ export abstract class TutorialApplication extends DefaultRenderer {
         imageData.push({ x, y, pixels: new ImageData(tileW, tileH) });
         transferBuffers.push(new ArrayBuffer(tileH * tileH * 4));
       }
+    });
     const camera = this.camera.getISPCCamera(width, height);
-    await this.renderTilesWithWorkerQueue(transferBuffers, width, height, time, camera, numTilesX, numTilesY, queue);
-    imageData.forEach((tile, i) => {
-      tile.pixels.data.set(new Uint8ClampedArray(transferBuffers[i]));
-      context.putImageData(tile.pixels, tile.x, tile.y);
-    })
+    for(let i =0 ;i< 10;i++) {
+      let renderStart = performance.now();
+      await this.renderTilesWithWorkerQueue(transferBuffers, width, height, time, camera, numTilesX, numTilesY, queue);
+      perf.logManual('Render '+i, renderStart);
+    }
+    perf.log('Put Pixels', () => {
+      imageData.forEach((tile, i) => {
+        tile.pixels.data.set(new Uint8ClampedArray(transferBuffers[i]));
+        context.putImageData(tile.pixels, tile.x, tile.y);
+      })
+    });
   }
 
   abstract device_init(): void;
   abstract device_cleanup(): void;
 
   static runTutorial<C extends new () => TutorialApplication>(START_TIME: number, tutorialClass: C, canvasID: string, WIDTH: number, HEIGHT: number): void {
-    const log = document.getElementById('fps')! as HTMLDivElement;
+    const perf = new PerfLogger('NonWorker');
     const canvas = document.getElementById(canvasID)! as HTMLCanvasElement;
     canvas.width = WIDTH;
     canvas.height = HEIGHT;
@@ -67,27 +77,43 @@ export abstract class TutorialApplication extends DefaultRenderer {
     const tutorial = new tutorialClass();
 
     tutorial.device_init();
-    const READ_TIME = performance.now();
-    log.innerText += `Startup Time: ${READ_TIME - START_TIME} ms\n`
-    tutorial.runWithCanvas(canvas, 0);
+    perf.logManual('Startup Time',START_TIME);
 
-    log.innerText += `Render Time: ${performance.now() - READ_TIME} ms\n`
+    const { context, pixels } = perf.log('Alloc Canvas', () => {
+      const context = canvas.getContext('2d')!;
+      const pixels = context.getImageData(0, 0, canvas.width, canvas.height);
+      return {context, pixels}
+    });
+    perf.log('Render', () => {
+      tutorial.run(pixels.data, canvas.width, canvas.height, 0);
+    })
+    perf.log('Render 2', () => {
+      tutorial.run(pixels.data, canvas.width, canvas.height, 0);
+    })
+    perf.log('Render 3', () => {
+      tutorial.run(pixels.data, canvas.width, canvas.height, 0);
+    })
+    perf.log('Put Pixels', () => {
+      context.putImageData(pixels, 0, 0);
+    });
+
+    perf.logToElementAsTable('fps');
   }
 
   static async runTutorialWithWorkers<C extends new () => TutorialApplication>(START_TIME: number, tutorialClass: C, tutorialURL: string, canvasID: string, WIDTH: number, HEIGHT: number, workerCount = 6): Promise<void> {
-    const log = document.getElementById('fps')! as HTMLDivElement;
+    const perf = new PerfLogger('Worker');
     const canvas = document.getElementById(canvasID)! as HTMLCanvasElement;
     canvas.width = WIDTH;
     canvas.height = HEIGHT;
-    canvas.style.width = Math.max(WIDTH * 0.9, 800) + 'px'
+    canvas.style.width = Math.max(WIDTH * 0.9, 800 * WIDTH/HEIGHT) + 'px'
     canvas.style.height = Math.max(HEIGHT * 0.9, 800) + 'px'
     const tutorial = new tutorialClass();
+    const queueStart = performance.now();
     const queue = new RenderQueue(tutorialURL, workerCount);
     await queue.ready();
-    const READ_TIME = performance.now();
-    log.innerText += `Startup Time: ${READ_TIME - START_TIME} ms\n`
-    await tutorial.runWorkerQueue(canvas, 0, queue);
+    perf.logManual('Start Queue', queueStart);
+    await tutorial.runWorkerQueue(canvas, 0, queue, perf);
 
-    log.innerText += `Render Time: ${performance.now() - READ_TIME} ms\n`
+    perf.logToElementAsTable('fps');
   }
 }

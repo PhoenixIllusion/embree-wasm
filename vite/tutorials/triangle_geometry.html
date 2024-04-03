@@ -6,7 +6,7 @@
 <script type="module">
   const START_TIME = performance.now();
 
-  const RUN_MODE = 'multi-thread-stream';
+  const RUN_MODE = 'multi-thread-z-only';
 
   const BASE_URL = '../src/tutorials/triangle_geometry/triangle_geometry_'
 
@@ -25,6 +25,14 @@
       }break;
     case 'multi-thread-stream': {
       const tutorial = await import(BASE_URL+'stream.ts');
+      tutorial.runWithWorker(START_TIME);
+      }break;
+    case 'z-only': {
+      const tutorial = await import(BASE_URL+'z_only.ts');
+      tutorial.run(START_TIME);
+      }break;
+    case 'multi-thread-z-only': {
+      const tutorial = await import(BASE_URL+'z_only.ts');
       tutorial.runWithWorker(START_TIME);
       }break;
   }

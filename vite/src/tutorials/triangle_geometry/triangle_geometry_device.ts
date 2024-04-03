@@ -39,15 +39,15 @@ export default class TriangleGeometryTutorial extends TutorialApplication {
 
   protected g_scene!: Embree.Scene;
 
-  private rayHit!: Embree.RTCRayHit;
+  protected rayHit!: Embree.RTCRayHit;
   private shadow!: Embree.RTCRay;
 
   protected interpolate!: Float32Array;
 
   protected data!: TutorialData;
 
-  constructor() {
-    super('CurveGeometryTutorial', [], 50, 50);
+  constructor(tileWidth: number = 50, tileHeight: number = 50) {
+    super('CurveGeometryTutorial', [], tileWidth, tileHeight);
     vec3.set(this.camera.from, 1.5, 1.5, -1.5);
     vec3.set(this.camera.to, 0, 0, 0);
   }

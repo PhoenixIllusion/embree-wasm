@@ -103,7 +103,7 @@ export abstract class DefaultRenderer implements Renderer {
     numTilesX: uint, numTilesY: uint, queue: RenderQueue) {
 
     queue.onData = (i: number, response: WorkerResponse) => {
-      pixels[i] = new Uint8ClampedArray(response.pixels);
+      pixels[i] = response.pixels;
     }
     for (let i = 0; i < pixels.length; i++) {
       queue.enqueue({

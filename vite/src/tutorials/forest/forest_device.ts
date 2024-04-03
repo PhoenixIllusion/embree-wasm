@@ -65,8 +65,8 @@ export default class ForestTutorial extends TutorialApplication {
   protected scene_trees: Embree.Scene[] = [];
   protected scene_terrain!: Embree.Scene;
 
-  constructor() {
-    super('ForestGeometryTutorial', [], 50, 50);
+  constructor(tileWidth: number = 50, tileHeight: number = 50) {
+    super('ForestGeometryTutorial', [], tileWidth, tileHeight);
     vec3.set(this.camera.from, 507.72, 109.37, 1173.20);
     vec3.set(this.camera.to, 504.62, 108.63, 1161.37);
   }

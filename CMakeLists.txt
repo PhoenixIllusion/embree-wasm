@@ -87,7 +87,8 @@ set(ENABLE_MULTI_THREADING 1 CACHE BOOL "Allow Multithreading" FORCE)
 # Enable multi threading
 if (ENABLE_MULTI_THREADING)
 	set(MULTI_THREADED_FLAG 
-		-pthread 
+		-pthread
+    -s WASM_WORKERS
 		-s SHARED_MEMORY)
 endif()
 
@@ -115,16 +116,6 @@ set(EMCC_ARGS
   -s EXPORTED_FUNCTIONS=_memalign,_malloc,_free
 )
 
-if ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
-	set(EMCC_ARGS 
-		${EMCC_ARGS} 
-		-g
-		-s ASSERTIONS)
-else()
-	set(EMCC_ARGS 
-		${EMCC_ARGS}
-		-O3)
-endif()
 
 set(EMCC_GLUE_ARGS
   -c
@@ -136,6 +127,24 @@ set(EMCC_GLUE_ARGS
   -include ${CMAKE_CURRENT_SOURCE_DIR}/embree_idl.h
   -Wall
   -msse2 -msimd128 -std=c++17)
+
+if ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
+  set(EMCC_GLUE_ARGS
+    ${EMCC_GLUE_ARGS}
+		-g
+		-s ASSERTIONS)
+	set(EMCC_ARGS 
+		${EMCC_ARGS} 
+		-g
+		-s ASSERTIONS)
+else()
+  set(EMCC_GLUE_ARGS
+    ${EMCC_GLUE_ARGS}
+		-O3 -flto)
+	set(EMCC_ARGS 
+		${EMCC_ARGS}
+		-O3 -flto)
+endif()
 
 
 #######################################
@@ -186,9 +195,9 @@ add_custom_target(Embree-Wasm-bindings ALL DEPENDS glue.js glue.o)
 
 #######################################
 add_custom_command(
-  OUTPUT ${OUTPUT_FOLDER}embree.js ${OUTPUT_FOLDER}embree.wasm
-  COMMAND emcc glue.o ${EMBREE_STATIC_LIBS} ${EMCC_ARGS} -o ${OUTPUT_FOLDER}embree.js
+  OUTPUT ${OUTPUT_FOLDER}embree.mjs ${OUTPUT_FOLDER}embree.wasm
+  COMMAND emcc glue.o ${EMBREE_STATIC_LIBS} ${EMCC_ARGS} -o ${OUTPUT_FOLDER}embree.mjs
   DEPENDS Embree-Wasm-bindings Embree-Wasm-generated embree ${EMBREE_LIBRARIES} ${GLUE_EXTRAS} glue.o
   COMMENT "Building Embree.js webassembly"
   VERBATIM)
-add_custom_target(Embree-wasm ALL DEPENDS ${OUTPUT_FOLDER}embree.js ${OUTPUT_FOLDER}embree.wasm)
+add_custom_target(Embree-wasm ALL DEPENDS ${OUTPUT_FOLDER}embree.mjs ${OUTPUT_FOLDER}embree.wasm)

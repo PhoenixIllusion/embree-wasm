@@ -19,3 +19,16 @@
   function allocRTCRayHit8(): Embree.RTCRayHit8;
   function allocRTCRayHit16(): Embree.RTCRayHit16;
 
+  function tileIntersect1Z(xfm: AffineSpace3fa, scene: Scene, rayhit: RTCRayHit, args: RTCIntersectArguments, d_x: number, d_width: number, d_y: number, d_height: number, dest: FloatPtr): void;
+  function tileIntersect4Z(xfm: AffineSpace3fa, scene: Scene, rayhit: RTCRayHit4, args: RTCIntersectArguments, d_x: number, d_width: number, d_y: number, d_height: number, dest: FloatPtr): void;
+  function tileIntersect8Z(xfm: AffineSpace3fa, scene: Scene, rayhit: RTCRayHit8, args: RTCIntersectArguments, d_x: number, d_width: number, d_y: number, d_height: number, dest: FloatPtr): void;
+  function tileIntersect16Z(xfm: AffineSpace3fa, scene: Scene, rayhit: RTCRayHit16, args: RTCIntersectArguments, d_x: number, d_width: number, d_y: number, d_height: number, dest: FloatPtr): void;
+
+
+  class RenderThreadPool {
+    constructor();
+  }
+
+  function initRenderThreadPool(numThreads: number, stackSize: number): RenderThreadPool;
+  function renderThreadPoolIntersect16Z(pool: RenderThreadPool, xfm: AffineSpace3fa, scene: Scene, width: number, height: number, dest: FloatPtr): number;
+  function releaseRenderThreadPool(pool: RenderThreadPool): void;

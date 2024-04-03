@@ -12,6 +12,19 @@ interface BBox3fa {
   [Value] attribute Vec3fa upper;
 };
 
+
+interface LinearSpace3fa {
+  [Value] attribute Vec3fa vx;
+  [Value] attribute Vec3fa vy;
+  [Value] attribute Vec3fa vz;
+};
+
+interface AffineSpace3fa {
+  [Value] attribute LinearSpace3fa l;
+  [Value] attribute Vec3fa p;
+};
+
+
 [NoDelete]
 interface BaseNode4 {
   [Ref] NodeRef4 child(unsigned long i);

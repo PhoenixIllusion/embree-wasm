@@ -43,6 +43,5 @@ interface RTCOccludedFunctionN {};
 [NoDelete]
 interface RTCDisplacementFunctionN {};
 
-
 [NoDelete]
 interface ValidMask {};

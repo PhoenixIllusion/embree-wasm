@@ -27,6 +27,8 @@ using Triangle4v = embree::Triangle4v;
 
 using vfloat4 = embree::vfloat4;
 using Vec3vf4 = embree::Vec3vf4;
+using LinearSpace3fa = embree::LinearSpace3fa;
+using AffineSpace3fa = embree::AffineSpace3fa;
 
 using AccelData = embree::AccelData;
 using Accel = embree::Accel;
